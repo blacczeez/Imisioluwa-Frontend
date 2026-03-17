@@ -1,0 +1,2 @@
+all:
+	node init.cjs

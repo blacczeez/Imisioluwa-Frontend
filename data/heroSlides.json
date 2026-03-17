@@ -1,0 +1,32 @@
+[
+  {
+    "id": "1",
+    "tag": "New Arrivals",
+    "heading": "Discover Authentic\nAfrican Remedies",
+    "description": "Premium traditional soaps, oils, and herbal products sourced directly from trusted makers.",
+    "buttonText": "Shop Now",
+    "buttonLink": "/",
+    "imageUrl": "https://picsum.photos/seed/hero1/800/400",
+    "bgColor": "#FAF5F0"
+  },
+  {
+    "id": "2",
+    "tag": "Herbal Collection",
+    "heading": "Nature's Healing\nPower Awaits",
+    "description": "Explore our curated selection of herbal teas, body care, and traditional medicine from across West Africa.",
+    "buttonText": "Explore",
+    "buttonLink": "/",
+    "imageUrl": "https://picsum.photos/seed/hero2/800/400",
+    "bgColor": "#F0E6DA"
+  },
+  {
+    "id": "3",
+    "tag": "Food & Spices",
+    "heading": "Taste of Home,\nDelivered Worldwide",
+    "description": "Authentic Nigerian seasonings, spices, and food products shipped to your doorstep wherever you are.",
+    "buttonText": "Browse",
+    "buttonLink": "/",
+    "imageUrl": "https://picsum.photos/seed/hero3/800/400",
+    "bgColor": "#E0CDB5"
+  }
+]

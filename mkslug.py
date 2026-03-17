@@ -1,0 +1,1 @@
+import os; n=chr(91)+"slug"+chr(93); os.makedirs("/Users/MAC/Imisioluwa/frontend-next/app/(store)/product/"+n, exist_ok=True); os.makedirs("/Users/MAC/Imisioluwa/frontend-next/app/(store)/category/"+n, exist_ok=True); print("ok")

@@ -1,0 +1,2 @@
+import os; src=os.path.join("/Users/MAC/Imisioluwa/frontend-next/app/(store)/product","xslugx"); dst=os.path.join("/Users/MAC/Imisioluwa/frontend-next/app/(store)/product",chr(91)+"slug"+chr(93)); os.rename(src,dst); print("ok")
+import os; src=os.path.join("/Users/MAC/Imisioluwa/frontend-next/app/(store)/category","xslugx"); dst=os.path.join("/Users/MAC/Imisioluwa/frontend-next/app/(store)/category",chr(91)+"slug"+chr(93)); os.rename(src,dst); print("ok2")
