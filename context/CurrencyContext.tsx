@@ -68,10 +68,13 @@ export const CurrencyProvider: React.FC<{ children: ReactNode }> = ({ children }
       return;
     }
 
-    fetch('https://ip-api.com/json/?fields=countryCode')
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.countryCode) {
+    const apiUrl = typeof window !== 'undefined' ? process.env.NEXT_PUBLIC_API_URL || '' : '';
+    const geoUrl = apiUrl ? `${apiUrl.replace(/\/$/, '')}/geo` : 'https://ip-api.com/json/?fields=countryCode';
+
+    fetch(geoUrl)
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error(`${res.status}`))))
+      .then((data: { countryCode?: string | null }) => {
+        if (data?.countryCode) {
           const detectedCountry = data.countryCode.toUpperCase();
           const detectedCurrency = COUNTRY_TO_CURRENCY[detectedCountry] || 'USD';
           setCountryState(detectedCountry);
@@ -81,7 +84,7 @@ export const CurrencyProvider: React.FC<{ children: ReactNode }> = ({ children }
         }
       })
       .catch(() => {
-        // Detection failed — keep defaults (NGN/NG)
+        // Detection failed (e.g. 403 from ip-api in browser, or backend down) — keep defaults (NGN/NG)
       })
       .finally(() => {
         setDetectionDone(true);
