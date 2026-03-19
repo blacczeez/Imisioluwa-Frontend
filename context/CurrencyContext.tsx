@@ -68,7 +68,7 @@ export const CurrencyProvider: React.FC<{ children: ReactNode }> = ({ children }
       return;
     }
 
-    fetch('http://ip-api.com/json/?fields=countryCode')
+    fetch('https://ip-api.com/json/?fields=countryCode')
       .then((res) => res.json())
       .then((data) => {
         if (data.countryCode) {

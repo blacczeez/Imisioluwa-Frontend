@@ -19,7 +19,7 @@ const currenciesCompact = [
   { value: 'EUR', label: '\u20AC' },
 ];
 
-const CurrencySwitcher: React.FC<{ compact?: boolean }> = ({ compact }) => {
+const CurrencySwitcher: React.FC<{ compact?: boolean; inDrawer?: boolean }> = ({ compact, inDrawer }) => {
   const { currency, setCurrency } = useCurrency();
 
   return (
@@ -28,6 +28,8 @@ const CurrencySwitcher: React.FC<{ compact?: boolean }> = ({ compact }) => {
       value={currency}
       onChange={(val) => setCurrency(val as Currency)}
       variant="inline"
+      menuStrategy={inDrawer ? 'fixed' : 'absolute'}
+      menuPlacement={inDrawer ? 'top' : 'bottom'}
       aria-label="Select currency"
     />
   );

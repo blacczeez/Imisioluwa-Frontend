@@ -14,7 +14,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   try {
     const product = await serverFetch<Product>(`/products/slug/${slug}`);
-    const productUrl = `${SITE_URL}/product/${product.slug}`;
+    const productUrl = `${SITE_URL}/product/${product.slug ?? product.id}`;
     const productImage = product.image_urls?.[0];
 
     return {

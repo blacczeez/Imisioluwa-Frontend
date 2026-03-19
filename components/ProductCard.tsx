@@ -24,7 +24,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onClick }) => {
 
   return (
     <Link
-      href={`/product/${product.slug}`}
+      href={`/product/${product.slug ?? product.id}`}
       onClick={() => onClick(product)}
       className="group border border-border rounded-xl overflow-hidden cursor-pointer bg-white hover:border-brand-300 transition-colors duration-200 block"
     >

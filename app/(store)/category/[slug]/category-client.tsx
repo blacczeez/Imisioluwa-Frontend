@@ -32,7 +32,7 @@ const CategoryPageClient: React.FC<CategoryPageClientProps> = ({ category }) => 
     itemListElement: category.products.map((product, index) => ({
       '@type': 'ListItem',
       position: index + 1,
-      url: `${SITE_URL}/product/${product.slug}`,
+      url: `${SITE_URL}/product/${product.slug ?? product.id}`,
       name: product.name_en,
     })),
   };

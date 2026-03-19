@@ -28,7 +28,7 @@ const ProductPageClient: React.FC<ProductPageClientProps> = ({ product }) => {
   const productName = getProductName(product, language);
   const productDescription = getProductDescription(product, language);
   const price = getProductPrice(product, currency);
-  const productUrl = `${SITE_URL}/product/${product.slug}`;
+  const productUrl = `${SITE_URL}/product/${product.slug ?? product.id}`;
   const productImage = product.image_urls?.[0] || '';
 
   const handleBuyNow = () => {
@@ -91,7 +91,7 @@ const ProductPageClient: React.FC<ProductPageClientProps> = ({ product }) => {
         items={[
           { label: t('home', 'Home'), href: '/' },
           ...(product.category
-            ? [{ label: getCategoryName(product.category, language), href: `/category/${product.category.slug}` }]
+            ? [{ label: getCategoryName(product.category, language), href: `/category/${product.category.slug ?? product.category_id}` }]
             : []),
           { label: productName },
         ]}

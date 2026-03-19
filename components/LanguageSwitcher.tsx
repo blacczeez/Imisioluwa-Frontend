@@ -11,7 +11,7 @@ const languages = [
   { value: 'fr', label: 'Fran\u00E7ais' },
 ];
 
-const LanguageSwitcher: React.FC = () => {
+const LanguageSwitcher: React.FC<{ inDrawer?: boolean }> = ({ inDrawer }) => {
   const { language, setLanguage } = useLanguage();
 
   return (
@@ -20,6 +20,8 @@ const LanguageSwitcher: React.FC = () => {
       value={language}
       onChange={(val) => setLanguage(val as Language)}
       variant="inline"
+      menuStrategy={inDrawer ? 'fixed' : 'absolute'}
+      menuPlacement={inDrawer ? 'top' : 'bottom'}
       aria-label="Select language"
     />
   );

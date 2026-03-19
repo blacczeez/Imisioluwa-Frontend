@@ -154,15 +154,15 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             </Link>
           </div>
 
-          {/* Drawer footer - currency & language */}
+          {/* Drawer footer - currency & language (fixed dropdowns open upward so they don't get cut off) */}
           <div className="absolute bottom-0 left-0 right-0 border-t border-border p-4 space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold uppercase tracking-label text-gray-400">Currency</span>
-              <CurrencySwitcher />
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs font-semibold uppercase tracking-label text-gray-400 shrink-0">Currency</span>
+              <CurrencySwitcher inDrawer />
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold uppercase tracking-label text-gray-400">Language</span>
-              <LanguageSwitcher />
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs font-semibold uppercase tracking-label text-gray-400 shrink-0">Language</span>
+              <LanguageSwitcher inDrawer />
             </div>
           </div>
         </div>

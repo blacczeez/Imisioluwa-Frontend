@@ -24,6 +24,8 @@ export interface CustomSelectProps {
   disabled?: boolean;
   className?: string;
   menuStrategy?: 'absolute' | 'fixed';
+  /** When using fixed strategy, open menu above the trigger (e.g. in a bottom-anchored drawer) */
+  menuPlacement?: 'bottom' | 'top';
   'aria-label'?: string;
 }
 
@@ -44,6 +46,7 @@ const CustomSelect = React.forwardRef<HTMLSelectElement, CustomSelectProps>(
       disabled,
       className = '',
       menuStrategy = 'absolute',
+      menuPlacement = 'bottom',
       'aria-label': ariaLabel,
     },
     ref
@@ -51,7 +54,7 @@ const CustomSelect = React.forwardRef<HTMLSelectElement, CustomSelectProps>(
     const uid = useId();
     const listboxId = `${uid}-listbox`;
     const hiddenSelectRef = useRef<HTMLSelectElement | null>(null);
-    const [fixedPos, setFixedPos] = useState({ top: 0, left: 0, width: 0 });
+    const [fixedPos, setFixedPos] = useState<{ top?: number; bottom?: number; left: number; width: number }>({ top: 0, left: 0, width: 0 });
 
     const selectedOption = options.find((o) => o.value === value);
 
@@ -99,11 +102,19 @@ const CustomSelect = React.forwardRef<HTMLSelectElement, CustomSelectProps>(
       const updatePos = () => {
         const rect = triggerRef.current?.getBoundingClientRect();
         if (rect) {
-          setFixedPos({
-            top: rect.bottom + 4,
-            left: rect.left,
-            width: rect.width,
-          });
+          if (menuPlacement === 'top') {
+            setFixedPos({
+              bottom: window.innerHeight - rect.top + 4,
+              left: rect.left,
+              width: Math.max(rect.width, 160),
+            });
+          } else {
+            setFixedPos({
+              top: rect.bottom + 4,
+              left: rect.left,
+              width: Math.max(rect.width, 160),
+            });
+          }
         }
       };
 
@@ -113,7 +124,7 @@ const CustomSelect = React.forwardRef<HTMLSelectElement, CustomSelectProps>(
       const handleScroll = () => close();
       window.addEventListener('scroll', handleScroll, true);
       return () => window.removeEventListener('scroll', handleScroll, true);
-    }, [isOpen, menuStrategy, close, triggerRef]);
+    }, [isOpen, menuStrategy, menuPlacement, close, triggerRef]);
 
     // Scroll active option into view
     useEffect(() => {
@@ -144,7 +155,8 @@ const CustomSelect = React.forwardRef<HTMLSelectElement, CustomSelectProps>(
       : `bg-transparent border-none text-sm font-medium text-brand-dark uppercase tracking-label focus:outline-none`;
 
     const menuBaseClasses =
-      'bg-white border border-border rounded-lg shadow-lg py-1 max-h-60 overflow-y-auto animate-dropdown z-50';
+      'bg-white border border-border rounded-lg shadow-lg py-1 max-h-60 overflow-y-auto animate-dropdown ' +
+      (menuStrategy === 'fixed' ? 'z-[70]' : 'z-50');
 
     const selectId = id || name || uid;
 
@@ -209,10 +221,9 @@ const CustomSelect = React.forwardRef<HTMLSelectElement, CustomSelectProps>(
             className={menuBaseClasses}
             style={{
               position: 'fixed',
-              top: fixedPos.top,
-              left: fixedPos.left,
-              width: fixedPos.width,
-              minWidth: '160px',
+              ...(menuPlacement === 'top'
+                ? { bottom: fixedPos.bottom, top: 'auto' as const, left: fixedPos.left, width: fixedPos.width, minWidth: 160 }
+                : { top: fixedPos.top, left: fixedPos.left, width: fixedPos.width, minWidth: 160 }),
             }}
           >
             {menuContent}
