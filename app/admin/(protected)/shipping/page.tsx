@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { adminApi } from '@/services/admin';
-import { Spinner, Button, CustomSelect } from '@/components/ui';
+import { Spinner, Button, CustomSelect, ConfirmModal } from '@/components/ui';
 
 interface ShippingZone {
   id: string;
@@ -18,7 +18,7 @@ const emptyZone = {
   name: '',
   countries: '',
   currency: 'USD',
-  flat_rate: 0,
+  flat_rate: '',
   free_shipping_above: '',
 };
 
@@ -29,6 +29,8 @@ export default function AdminShippingPage() {
   const [showAdd, setShowAdd] = useState(false);
   const [form, setForm] = useState(emptyZone);
   const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     loadZones();
@@ -51,7 +53,7 @@ export default function AdminShippingPage() {
       name: zone.name,
       countries: zone.countries.join(', '),
       currency: zone.currency,
-      flat_rate: zone.flat_rate,
+      flat_rate: zone.flat_rate?.toString() || '',
       free_shipping_above: zone.free_shipping_above?.toString() || '',
     });
     setShowAdd(false);
@@ -85,13 +87,17 @@ export default function AdminShippingPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Delete this shipping zone?')) return;
+  const handleDelete = async () => {
+    if (!deletingId) return;
+    setDeleting(true);
     try {
-      await adminApi.deleteShippingZone(id);
+      await adminApi.deleteShippingZone(deletingId);
+      setDeletingId(null);
       loadZones();
     } catch (error) {
       console.error('Error deleting zone:', error);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -118,7 +124,7 @@ export default function AdminShippingPage() {
     );
   }
 
-  const inputClassName = "w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-brand-light focus:border-transparent bg-white";
+  const inputClassName = "w-full px-3 py-2 border border-border rounded-lg text-base focus:ring-2 focus:ring-brand-light focus:border-transparent bg-white";
   const labelClassName = "block text-xs font-semibold text-brand-dark uppercase tracking-label mb-1";
 
   const renderForm = () => (
@@ -163,7 +169,7 @@ export default function AdminShippingPage() {
             type="number"
             step="0.01"
             value={form.flat_rate}
-            onChange={(e) => setForm({ ...form, flat_rate: Number(e.target.value) })}
+            onChange={(e) => setForm({ ...form, flat_rate: e.target.value })}
           />
         </div>
         <div>
@@ -247,7 +253,7 @@ export default function AdminShippingPage() {
                       Edit
                     </button>
                     <button
-                      onClick={() => handleDelete(zone.id)}
+                      onClick={() => setDeletingId(zone.id)}
                       className="text-xs font-medium text-danger hover:text-red-700 uppercase tracking-label"
                     >
                       Delete
@@ -304,7 +310,7 @@ export default function AdminShippingPage() {
                 Edit
               </button>
               <button
-                onClick={() => handleDelete(zone.id)}
+                onClick={() => setDeletingId(zone.id)}
                 className="text-xs font-medium text-danger hover:text-red-700 uppercase tracking-label"
               >
                 Delete
@@ -313,6 +319,15 @@ export default function AdminShippingPage() {
           </div>
         ))}
       </div>
+
+      <ConfirmModal
+        isOpen={!!deletingId}
+        onClose={() => setDeletingId(null)}
+        onConfirm={handleDelete}
+        title="Delete Shipping Zone"
+        message="Are you sure you want to delete this shipping zone?"
+        loading={deleting}
+      />
     </div>
   );
 }

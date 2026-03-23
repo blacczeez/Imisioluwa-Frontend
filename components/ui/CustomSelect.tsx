@@ -149,10 +149,10 @@ const CustomSelect = React.forwardRef<HTMLSelectElement, CustomSelectProps>(
     const isSm = size === 'sm';
 
     const triggerClasses = isForm
-      ? `w-full px-4 ${isSm ? 'py-1.5 text-xs' : 'py-3 text-sm'} border rounded-lg bg-white text-brand-dark hover:border-brand-300 focus:ring-2 focus:ring-brand-light focus:border-transparent transition-colors ${
+      ? `w-full px-4 ${isSm ? 'py-1.5 text-sm' : 'py-3 text-base'} border rounded-lg bg-white text-brand-dark hover:border-brand-300 focus:ring-2 focus:ring-brand-light focus:border-transparent transition-colors ${
           error ? 'border-danger' : 'border-border'
         }`
-      : `bg-transparent border-none text-sm font-medium text-brand-dark uppercase tracking-label focus:outline-none`;
+      : `bg-transparent border-none text-base font-medium text-brand-dark uppercase tracking-label focus:outline-none`;
 
     const menuBaseClasses =
       'bg-white border border-border rounded-lg shadow-lg py-1 max-h-60 overflow-y-auto animate-dropdown ' +

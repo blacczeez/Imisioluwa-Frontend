@@ -67,7 +67,7 @@ const TrackOrderContent: React.FC = () => {
               value={orderNumber}
               onChange={(e) => setOrderNumber(e.target.value)}
               placeholder={t('track_order_number_placeholder')}
-              className="w-full px-3 py-2.5 sm:px-4 sm:py-3 text-sm border border-border rounded-lg focus:ring-2 focus:ring-brand-light focus:border-transparent transition-colors bg-white"
+              className="w-full px-3 py-2.5 sm:px-4 sm:py-3 text-base border border-border rounded-lg focus:ring-2 focus:ring-brand-light focus:border-transparent transition-colors bg-white"
             />
           </div>
           <div>
@@ -79,7 +79,7 @@ const TrackOrderContent: React.FC = () => {
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder={t('track_phone_placeholder')}
-              className="w-full px-3 py-2.5 sm:px-4 sm:py-3 text-sm border border-border rounded-lg focus:ring-2 focus:ring-brand-light focus:border-transparent transition-colors bg-white"
+              className="w-full px-3 py-2.5 sm:px-4 sm:py-3 text-base border border-border rounded-lg focus:ring-2 focus:ring-brand-light focus:border-transparent transition-colors bg-white"
             />
           </div>
           <button

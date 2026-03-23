@@ -27,6 +27,7 @@ const AddEditProductModal: React.FC<AddEditProductModalProps> = ({ isOpen, onClo
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors },
   } = useForm<ProductFormData>();
 
@@ -60,9 +61,9 @@ const AddEditProductModal: React.FC<AddEditProductModalProps> = ({ isOpen, onClo
           name_yo: '',
           description_en: '',
           description_yo: '',
-          price: 0,
+          price: undefined,
           category_id: '',
-          stock_quantity: 0,
+          stock_quantity: undefined,
           is_active: true,
         });
         setImagePreviews([]);
@@ -230,6 +231,7 @@ const AddEditProductModal: React.FC<AddEditProductModalProps> = ({ isOpen, onClo
             placeholder={loadingCategories ? 'Loading...' : 'Select category...'}
             error={errors.category_id?.message}
             options={categories.map((c) => ({ value: c.id, label: c.name_en }))}
+            value={watch('category_id')}
             {...register('category_id', { required: 'Category is required' })}
           />
         </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import Image from 'next/image';
 import slides from '@/data/heroSlides.json';
 
 interface Slide {
@@ -66,7 +67,7 @@ const HeroCarousel: React.FC = () => {
         className="flex transition-transform duration-500 ease-in-out"
         style={{ transform: `translateX(-${currentSlide * 100}%)` }}
       >
-        {(slides as Slide[]).map((slide) => (
+        {(slides as Slide[]).map((slide, index) => (
           <div
             key={slide.id}
             className="w-full flex-shrink-0"
@@ -93,14 +94,14 @@ const HeroCarousel: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex items-center justify-center p-3 md:p-0 order-1 md:order-2">
-                <img
+              <div className="relative flex items-center justify-center p-3 md:p-0 order-1 md:order-2 min-h-[160px] sm:min-h-[220px] md:min-h-full">
+                <Image
                   src={slide.imageUrl}
                   alt={slide.heading.replace('\n', ' ')}
-                  className="object-contain max-h-[160px] sm:max-h-[220px] md:max-h-full md:h-full md:w-full md:object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = 'none';
-                  }}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  className="object-contain md:object-cover"
+                  priority={index === 0}
                 />
               </div>
             </div>

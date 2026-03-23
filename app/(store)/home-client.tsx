@@ -88,17 +88,20 @@ const HomeClient: React.FC<HomeClientProps> = ({ initialProducts, initialCategor
               placeholder={t('search')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 sm:pl-11 sm:pr-4 sm:py-3 text-sm border border-border rounded-lg focus:ring-2 focus:ring-brand-light focus:border-transparent transition-colors bg-white"
+              className="w-full pl-9 pr-3 py-2 sm:pl-11 sm:pr-4 sm:py-3 text-base border border-border rounded-lg focus:ring-2 focus:ring-brand-light focus:border-transparent transition-colors bg-white"
             />
           </div>
           <CustomSelect
             value={selectedCategory}
             onChange={setSelectedCategory}
             placeholder={t('all_categories')}
-            options={categories.map((category) => ({
-              value: category.id,
-              label: getCategoryName(category, language),
-            }))}
+            options={[
+              { value: '', label: t('all_categories') },
+              ...categories.map((category) => ({
+                value: category.id,
+                label: getCategoryName(category, language),
+              })),
+            ]}
             variant="form"
             className="min-w-[180px]"
             aria-label={t('all_categories')}

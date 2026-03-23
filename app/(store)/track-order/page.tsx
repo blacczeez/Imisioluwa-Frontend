@@ -1,7 +1,11 @@
-'use client';
-
-import React, { Suspense } from 'react';
+import { Metadata } from 'next';
+import { Suspense } from 'react';
 import TrackOrderContent from './content';
+
+export const metadata: Metadata = {
+  title: 'Track Your Order',
+  description: 'Enter your order number and phone number to track your Imisioluwa order status.',
+};
 
 export default function TrackOrderPage() {
   return (

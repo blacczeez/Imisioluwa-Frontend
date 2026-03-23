@@ -2,9 +2,8 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { serverFetch } from '@/lib/api';
 import { Product } from '@/types';
+import { SITE_URL } from '@/lib/constants';
 import ProductPageClient from './product-client';
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 
 interface Props {
   params: Promise<{ slug: string }>;

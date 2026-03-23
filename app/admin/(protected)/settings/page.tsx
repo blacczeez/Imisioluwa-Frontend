@@ -138,7 +138,7 @@ export default function AdminSettingsPage() {
               value={settings.whatsapp_number || ''}
               onChange={(e) => handleChange('whatsapp_number', e.target.value)}
               placeholder="e.g. 2348012345678"
-              className="w-full px-4 py-3 border border-border rounded-lg focus:ring-2 focus:ring-brand-light focus:border-transparent transition-colors bg-white text-brand-dark"
+              className="w-full px-4 py-3 text-base border border-border rounded-lg focus:ring-2 focus:ring-brand-light focus:border-transparent transition-colors bg-white text-brand-dark"
             />
             <p className="mt-1 text-sm text-gray-400">Include country code. Leave empty to disable WhatsApp alerts.</p>
           </div>
@@ -153,11 +153,12 @@ export default function AdminSettingsPage() {
             </label>
             <input
               type="number"
-              value={settings.payment_expiry_minutes || '30'}
+              value={settings.payment_expiry_minutes || ''}
               onChange={(e) => handleChange('payment_expiry_minutes', e.target.value)}
+              placeholder="30"
               min="5"
               max="1440"
-              className="w-full px-4 py-3 border border-border rounded-lg focus:ring-2 focus:ring-brand-light focus:border-transparent transition-colors bg-white text-brand-dark"
+              className="w-full px-4 py-3 text-base border border-border rounded-lg focus:ring-2 focus:ring-brand-light focus:border-transparent transition-colors bg-white text-brand-dark"
             />
             <p className="mt-1 text-sm text-gray-400">Unpaid online orders will be auto-cancelled after this time.</p>
           </div>

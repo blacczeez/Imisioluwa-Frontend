@@ -8,8 +8,7 @@ import ProductModal from '@/components/ProductModal';
 import { useLanguage } from '@/context/LanguageContext';
 import { getCategoryName } from '@/utils/helpers';
 import Breadcrumbs from '@/components/Breadcrumbs';
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+import { SITE_URL } from '@/lib/constants';
 
 interface CategoryPageClientProps {
   category: Category & { products: Product[] };

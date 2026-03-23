@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { productService } from '@/services/products';
 import { adminApi } from '@/services/admin';
 import { Category } from '@/types';
-import { Button, Modal, Input, Spinner, Table, TableHead, TableBody, TableHeader, TableCell } from '@/components/ui';
+import { Button, Modal, ConfirmModal, Input, Spinner, Table, TableHead, TableBody, TableHeader, TableCell } from '@/components/ui';
 import { useToast } from '@/context/ToastContext';
 
 interface CategoryFormData {
@@ -22,6 +22,8 @@ export default function AdminCategoriesPage() {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const isEditMode = !!editingCategory;
 
@@ -84,14 +86,17 @@ export default function AdminCategoriesPage() {
     setEditingCategory(null);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure? Products in this category may be affected.')) return;
-
+  const handleDelete = async () => {
+    if (!deletingId) return;
+    setDeleting(true);
     try {
-      await adminApi.deleteCategory(id);
+      await adminApi.deleteCategory(deletingId);
+      setDeletingId(null);
       loadCategories();
     } catch (err: any) {
       showToast(err.response?.data?.error || 'Failed to delete category');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -163,7 +168,7 @@ export default function AdminCategoriesPage() {
                       Edit
                     </button>
                     <button
-                      onClick={() => handleDelete(category.id)}
+                      onClick={() => setDeletingId(category.id)}
                       className="text-danger hover:text-red-700 font-medium text-sm transition-colors"
                     >
                       Delete
@@ -189,7 +194,7 @@ export default function AdminCategoriesPage() {
                     Edit
                   </button>
                   <button
-                    onClick={() => handleDelete(category.id)}
+                    onClick={() => setDeletingId(category.id)}
                     className="text-danger hover:text-red-700 font-medium text-sm transition-colors"
                   >
                     Delete
@@ -208,6 +213,15 @@ export default function AdminCategoriesPage() {
         </div>
         </>
       )}
+
+      <ConfirmModal
+        isOpen={!!deletingId}
+        onClose={() => setDeletingId(null)}
+        onConfirm={handleDelete}
+        title="Delete Category"
+        message="Are you sure? Products in this category may be affected."
+        loading={deleting}
+      />
 
       <Modal
         isOpen={modalOpen}

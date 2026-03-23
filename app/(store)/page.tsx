@@ -1,9 +1,8 @@
 import { Metadata } from 'next';
 import { serverFetch } from '@/lib/api';
 import { Product, Category } from '@/types';
+import { SITE_URL } from '@/lib/constants';
 import HomeClient from './home-client';
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 
 export const metadata: Metadata = {
   title: 'Imisioluwa — Shop Authentic African Traditional & Spiritual Products Online',

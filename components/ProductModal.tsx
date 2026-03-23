@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Product } from '@/types';
 import { useLanguage } from '@/context/LanguageContext';
@@ -72,11 +73,15 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, isOpen, onClose })
 
           <div className="mb-6">
             {product.image_urls && product.image_urls.length > 0 ? (
-              <img
-                src={product.image_urls[0]}
-                alt={productName}
-                className="w-full h-80 object-cover rounded-lg bg-brand-50"
-              />
+              <div className="relative w-full h-80 rounded-lg overflow-hidden bg-brand-50">
+                <Image
+                  src={product.image_urls[0]}
+                  alt={productName}
+                  fill
+                  sizes="(max-width: 672px) 100vw, 672px"
+                  className="object-cover"
+                />
+              </div>
             ) : (
               <div className="w-full h-80 bg-brand-50 rounded-lg flex items-center justify-center text-gray-300">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-20 w-20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={0.5}>

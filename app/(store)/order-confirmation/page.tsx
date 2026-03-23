@@ -1,7 +1,12 @@
-'use client';
-
-import React, { Suspense } from 'react';
+import { Metadata } from 'next';
+import { Suspense } from 'react';
 import OrderConfirmationContent from './content';
+
+export const metadata: Metadata = {
+  title: 'Order Confirmed',
+  description: 'Your order has been placed successfully. Thank you for shopping with Imisioluwa.',
+  robots: { index: false, follow: true },
+};
 
 export default function OrderConfirmationPage() {
   return (

@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { CartItem as CartItemType } from '@/types';
 import { useLanguage } from '@/context/LanguageContext';
 import { useCurrency } from '@/context/CurrencyContext';
@@ -38,12 +39,14 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
 
   return (
     <div className="flex gap-4 bg-white p-4 rounded-xl border border-border">
-      <div className="w-24 h-24 bg-brand-50 rounded-lg overflow-hidden flex-shrink-0">
+      <div className="relative w-24 h-24 bg-brand-50 rounded-lg overflow-hidden flex-shrink-0">
         {item.product.image_urls && item.product.image_urls.length > 0 ? (
-          <img
+          <Image
             src={item.product.image_urls[0]}
             alt={productName}
-            className="w-full h-full object-cover"
+            width={96}
+            height={96}
+            className="object-cover w-full h-full"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">

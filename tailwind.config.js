@@ -31,8 +31,8 @@ module.exports = {
         danger: '#C1292E',
       },
       fontFamily: {
-        serif: ['DM Serif Display', 'Georgia', 'serif'],
-        sans: ['DM Sans', 'system-ui', 'sans-serif'],
+        serif: ['var(--font-dm-serif)', 'Georgia', 'serif'],
+        sans: ['var(--font-dm-sans)', 'system-ui', 'sans-serif'],
       },
       letterSpacing: {
         label: '0.08em',

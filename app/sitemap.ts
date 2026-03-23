@@ -1,6 +1,5 @@
 import { MetadataRoute } from 'next';
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://imisioluwa.com';
+import { SITE_URL } from '@/lib/constants';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

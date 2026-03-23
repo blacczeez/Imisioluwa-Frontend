@@ -5,7 +5,7 @@ import { productService } from '@/services/products';
 import { adminApi } from '@/services/admin';
 import { Product } from '@/types';
 import { formatCurrency } from '@/utils/helpers';
-import { Button, Badge, Spinner, Table, TableHead, TableBody, TableHeader, TableCell } from '@/components/ui';
+import { Button, Badge, Spinner, ConfirmModal, Table, TableHead, TableBody, TableHeader, TableCell } from '@/components/ui';
 import AddEditProductModal from '@/components/admin/AddEditProductModal';
 import { useToast } from '@/context/ToastContext';
 
@@ -15,6 +15,8 @@ export default function AdminProductsPage() {
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     loadProducts();
@@ -50,15 +52,18 @@ export default function AdminProductsPage() {
     loadProducts();
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this product?')) return;
-
+  const handleDelete = async () => {
+    if (!deletingId) return;
+    setDeleting(true);
     try {
-      await adminApi.deleteProduct(id);
+      await adminApi.deleteProduct(deletingId);
+      setDeletingId(null);
       loadProducts();
     } catch (error) {
       console.error('Error deleting product:', error);
       showToast('Failed to delete product');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -154,7 +159,7 @@ export default function AdminProductsPage() {
                     Edit
                   </button>
                   <button
-                    onClick={() => handleDelete(product.id)}
+                    onClick={() => setDeletingId(product.id)}
                     className="text-danger hover:text-red-700 font-medium text-sm transition-colors"
                   >
                     Delete
@@ -219,7 +224,7 @@ export default function AdminProductsPage() {
                   Edit
                 </button>
                 <button
-                  onClick={() => handleDelete(product.id)}
+                  onClick={() => setDeletingId(product.id)}
                   className="text-danger hover:text-red-700 font-medium text-sm transition-colors"
                 >
                   Delete
@@ -235,6 +240,15 @@ export default function AdminProductsPage() {
         onClose={handleModalClose}
         product={editingProduct}
         onSaved={handleSaved}
+      />
+
+      <ConfirmModal
+        isOpen={!!deletingId}
+        onClose={() => setDeletingId(null)}
+        onConfirm={handleDelete}
+        title="Delete Product"
+        message="Are you sure you want to delete this product? This action cannot be undone."
+        loading={deleting}
       />
     </div>
   );

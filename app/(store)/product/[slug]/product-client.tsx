@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { Product } from '@/types';
@@ -10,8 +11,7 @@ import { useCart } from '@/context/CartContext';
 import { getProductName, getProductDescription, getProductPrice, formatCurrency, getCategoryName } from '@/utils/helpers';
 import Breadcrumbs from '@/components/Breadcrumbs';
 import ShareButtons from '@/components/ShareButtons';
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+import { SITE_URL } from '@/lib/constants';
 
 interface ProductPageClientProps {
   product: Product;
@@ -53,7 +53,7 @@ const ProductPageClient: React.FC<ProductPageClientProps> = ({ product }) => {
     }
   };
 
-  const jsonLd = {
+  const jsonLd: Record<string, unknown> = {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: product.name_en,
@@ -65,6 +65,15 @@ const ProductPageClient: React.FC<ProductPageClientProps> = ({ product }) => {
     },
     sku: product.id,
     url: productUrl,
+    itemCondition: 'https://schema.org/NewCondition',
+    ...(product.category && { category: product.category.name_en }),
+    ...(product.weight_kg && {
+      weight: {
+        '@type': 'QuantitativeValue',
+        value: product.weight_kg,
+        unitCode: 'KGM',
+      },
+    }),
     offers: {
       '@type': 'Offer',
       price: price ?? product.price,
@@ -99,13 +108,18 @@ const ProductPageClient: React.FC<ProductPageClientProps> = ({ product }) => {
 
       <div className="bg-white rounded-xl border border-border overflow-hidden">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
-          <div className="bg-brand-50">
+          <div className="relative bg-brand-50">
             {productImage ? (
-              <img
-                src={productImage}
-                alt={productName}
-                className="w-full h-60 sm:h-80 md:h-full object-cover"
-              />
+              <div className="relative w-full h-60 sm:h-80 md:h-full min-h-[240px]">
+                <Image
+                  src={productImage}
+                  alt={productName}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  className="object-cover"
+                  priority
+                />
+              </div>
             ) : (
               <div className="w-full h-60 sm:h-80 md:h-full flex items-center justify-center text-gray-300">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-20 w-20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={0.5}>

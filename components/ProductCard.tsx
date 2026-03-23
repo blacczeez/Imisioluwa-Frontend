@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { Product } from '@/types';
 import { useLanguage } from '@/context/LanguageContext';
@@ -30,11 +31,12 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onClick }) => {
     >
       <div className="relative h-48 sm:h-64 bg-brand-50">
         {product.image_urls && product.image_urls.length > 0 ? (
-          <img
+          <Image
             src={product.image_urls[0]}
             alt={productName}
-            loading="lazy"
-            className="w-full h-full object-cover"
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
+            className="object-cover"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-gray-300">

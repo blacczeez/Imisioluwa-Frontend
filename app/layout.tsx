@@ -1,8 +1,22 @@
 import type { Metadata } from 'next';
+import { DM_Sans, DM_Serif_Display } from 'next/font/google';
 import Providers from './providers';
+import { SITE_URL } from '@/lib/constants';
 import './globals.css';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://imisioluwa.com';
+const dmSans = DM_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-dm-sans',
+  display: 'swap',
+});
+
+const dmSerif = DM_Serif_Display({
+  subsets: ['latin'],
+  weight: '400',
+  variable: '--font-dm-serif',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -26,6 +40,12 @@ export const metadata: Metadata = {
   other: {
     'theme-color': '#5C3D2E',
   },
+  alternates: {
+    languages: {
+      en: SITE_URL,
+      yo: `${SITE_URL}?lang=yo`,
+    },
+  },
 };
 
 export default function RootLayout({
@@ -34,15 +54,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap"
-          rel="stylesheet"
-        />
-      </head>
+    <html lang="en" className={`${dmSans.variable} ${dmSerif.variable}`} suppressHydrationWarning>
       <body>
         <Providers>{children}</Providers>
       </body>
