@@ -105,6 +105,11 @@
   "copy_link": "Copy Link",
   "link_copied": "Link copied!",
   "view_product": "View Product",
+  "learn_more": "Learn More",
+  "you_may_also_like": "You may also like",
   "back_to_shop": "Back to Shop",
-  "page_not_found": "The page you are looking for does not exist."
+  "page_not_found": "The page you are looking for does not exist.",
+  "nav_blog": "Blog",
+  "nav_currency": "Currency",
+  "nav_language": "Language"
 }

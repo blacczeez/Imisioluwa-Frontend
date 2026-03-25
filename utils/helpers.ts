@@ -12,6 +12,8 @@ export const formatCurrency = (amount: number, currency: Currency = 'NGN'): stri
   return new Intl.NumberFormat(config.locale, {
     style: 'currency',
     currency: config.code,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
   }).format(amount);
 };
 
@@ -28,16 +30,19 @@ export const getProductPrice = (
 };
 
 export const getProductName = (product: { name_en: string; name_yo: string }, language: string): string => {
-  return language === 'yo' ? product.name_yo : product.name_en;
+  if (language === 'yo') return product.name_yo;
+  return product.name_en;
 };
 
 export const getProductDescription = (
   product: { description_en: string; description_yo: string },
   language: string
 ): string => {
-  return language === 'yo' ? product.description_yo : product.description_en;
+  if (language === 'yo') return product.description_yo;
+  return product.description_en;
 };
 
 export const getCategoryName = (category: { name_en: string; name_yo: string }, language: string): string => {
-  return language === 'yo' ? category.name_yo : category.name_en;
+  if (language === 'yo') return category.name_yo;
+  return category.name_en;
 };

@@ -1,11 +1,11 @@
 import type { Product } from '@/types';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+import { getServerSideApiBaseUrl } from '@/lib/api';
 
 /** Public listing is paginated; use a high limit for sitemap / static generation. */
 export async function getBuildTimeProducts(): Promise<Product[]> {
   try {
-    const res = await fetch(`${API_URL}/products?limit=500&page=1`, {
+    const base = getServerSideApiBaseUrl();
+    const res = await fetch(`${base}/products?limit=500&page=1`, {
       next: { revalidate: 3600 },
     });
     if (!res.ok) return [];
@@ -16,7 +16,7 @@ export async function getBuildTimeProducts(): Promise<Product[]> {
   } catch {
     // Build often runs without the API; ECONNREFUSED throws before res.ok.
     console.warn(
-      `[build-products] Could not reach ${API_URL}. Pre-render/sitemap product URLs skipped; start the backend or set NEXT_PUBLIC_API_URL for a full static build.`,
+      `[build-products] Could not reach ${getServerSideApiBaseUrl()}. Pre-render/sitemap product URLs skipped; start the backend or set NEXT_PUBLIC_API_URL for a full static build.`,
     );
     return [];
   }

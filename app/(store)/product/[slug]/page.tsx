@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { serverFetch } from '@/lib/api';
+import { encodeApiPathSegment, serverFetch } from '@/lib/api';
 import { Category, Product } from '@/types';
 import { SITE_URL } from '@/lib/constants';
 import ProductPageClient from './product-client';
@@ -11,8 +11,12 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
+  if (!slug?.trim()) {
+    return { title: 'Product Not Found' };
+  }
+  const key = slug.trim();
   try {
-    const product = await serverFetch<Product>(`/products/slug/${slug}`);
+    const product = await serverFetch<Product>(`/products/slug/${encodeApiPathSegment(key)}`);
     const productUrl = `${SITE_URL}/product/${product.slug ?? product.id}`;
     const productImage = product.image_urls?.[0];
 
@@ -54,10 +58,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ProductPage({ params }: Props) {
   const { slug } = await params;
+  if (!slug?.trim()) {
+    notFound();
+  }
+  const key = slug.trim();
   let product: Product;
 
   try {
-    product = await serverFetch<Product>(`/products/slug/${slug}`);
+    product = await serverFetch<Product>(`/products/slug/${encodeApiPathSegment(key)}`);
   } catch {
     notFound();
   }
@@ -66,9 +74,12 @@ export default async function ProductPage({ params }: Props) {
   const categorySlug = product.category?.slug;
   if (categorySlug) {
     try {
-      const cat = await serverFetch<Category & { products: Product[] }>(`/categories/${categorySlug}`, {
-        revalidate: 120,
-      });
+      const cat = await serverFetch<Category & { products: Product[] }>(
+        `/categories/${encodeApiPathSegment(categorySlug)}`,
+        {
+          revalidate: 120,
+        },
+      );
       relatedProducts = cat.products.filter((p) => p.id !== product.id).slice(0, 4);
     } catch {
       relatedProducts = [];

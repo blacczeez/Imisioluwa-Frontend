@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { Product, Category } from '@/types';
 import ProductCard from '@/components/ProductCard';
-import ProductModal from '@/components/ProductModal';
 import { productService } from '@/services/products';
 import { useLanguage } from '@/context/LanguageContext';
 import { useCurrency } from '@/context/CurrencyContext';
@@ -24,7 +23,6 @@ const HomeClient: React.FC<HomeClientProps> = ({ initialProducts, initialCategor
   const { currency } = useCurrency();
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [categories, setCategories] = useState<Category[]>(initialCategories);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -127,15 +125,11 @@ const HomeClient: React.FC<HomeClientProps> = ({ initialProducts, initialCategor
                   {getCategoryName(category, language)}
                 </Link>
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
                 {filteredProducts
                   .filter((product) => product.category_id === category.id)
                   .map((product) => (
-                    <ProductCard
-                      key={product.id}
-                      product={product}
-                      onClick={setSelectedProduct}
-                    />
+                    <ProductCard key={product.id} product={product} />
                   ))}
               </div>
             </section>
@@ -143,13 +137,6 @@ const HomeClient: React.FC<HomeClientProps> = ({ initialProducts, initialCategor
         </div>
       )}
 
-      {selectedProduct && (
-        <ProductModal
-          product={selectedProduct}
-          isOpen={!!selectedProduct}
-          onClose={() => setSelectedProduct(null)}
-        />
-      )}
     </div>
   );
 };

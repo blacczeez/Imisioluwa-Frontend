@@ -73,7 +73,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 href="/blog"
                 className="hidden sm:inline text-sm font-medium uppercase tracking-label text-brand-dark hover:text-brand-light transition-colors"
               >
-                Blog
+                {t('nav_blog')}
               </Link>
               <div className="hidden sm:block"><CurrencySwitcher /></div>
               <div className="hidden sm:block"><LanguageSwitcher /></div>
@@ -155,7 +155,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               href="/blog"
               className="px-3 py-2.5 rounded text-sm font-medium text-brand-dark hover:bg-brand-50 transition-colors"
             >
-              Blog
+              {t('nav_blog')}
             </Link>
             <Link
               href="/cart"
@@ -169,11 +169,15 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           {/* Drawer footer - currency & language (fixed dropdowns open upward so they don't get cut off) */}
           <div className="absolute bottom-0 left-0 right-0 border-t border-border p-4 space-y-4">
             <div className="flex items-center justify-between gap-2">
-              <span className="text-xs font-semibold uppercase tracking-label text-gray-400 shrink-0">Currency</span>
+              <span className="text-xs font-semibold uppercase tracking-label text-gray-400 shrink-0">
+                {t('nav_currency')}
+              </span>
               <CurrencySwitcher inDrawer />
             </div>
             <div className="flex items-center justify-between gap-2">
-              <span className="text-xs font-semibold uppercase tracking-label text-gray-400 shrink-0">Language</span>
+              <span className="text-xs font-semibold uppercase tracking-label text-gray-400 shrink-0">
+                {t('nav_language')}
+              </span>
               <LanguageSwitcher inDrawer />
             </div>
           </div>
@@ -227,7 +231,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             </Link>
             <span className="mx-2 text-white/30">|</span>
             <Link href="/blog" className="text-white hover:text-brand-light transition-colors">
-              Blog
+              {t('nav_blog')}
             </Link>
           </div>
 

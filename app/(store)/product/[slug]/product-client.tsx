@@ -14,6 +14,7 @@ import Breadcrumbs from '@/components/Breadcrumbs';
 import ShareButtons from '@/components/ShareButtons';
 import { SITE_URL } from '@/lib/constants';
 import { BLOG_POSTS } from '@/lib/blog-posts';
+import { getBlogPostTitle } from '@/lib/blog-localize';
 
 interface ProductPageClientProps {
   product: Product;
@@ -34,7 +35,7 @@ const ProductPageClient: React.FC<ProductPageClientProps> = ({ product, relatedP
   const productUrl = `${SITE_URL}/product/${product.slug ?? product.id}`;
   const productImage = product.image_urls?.[0] || '';
   const relatedPosts = BLOG_POSTS.map((post) => {
-    const text = `${product.name_en} ${product.description_en} ${product.category?.name_en ?? ''}`.toLowerCase();
+    const text = `${product.name_en} ${product.name_yo} ${product.description_en} ${product.description_yo} ${product.category?.name_en ?? ''} ${product.category?.name_yo ?? ''}`.toLowerCase();
     const score = post.keywords.reduce((acc, keyword) => {
       const tokens = keyword.toLowerCase().split(' ');
       const tokenHits = tokens.filter((token) => token.length > 2 && text.includes(token)).length;
@@ -215,7 +216,7 @@ const ProductPageClient: React.FC<ProductPageClientProps> = ({ product, relatedP
             {relatedPosts.length > 0 && (
               <div className="pt-6 mt-6 border-t border-border">
                 <h3 className="text-xs sm:text-sm font-semibold uppercase tracking-label text-brand-dark mb-3">
-                  Learn More
+                  {t('learn_more')}
                 </h3>
                 <div className="space-y-2">
                   {relatedPosts.map((post) => (
@@ -224,7 +225,7 @@ const ProductPageClient: React.FC<ProductPageClientProps> = ({ product, relatedP
                       href={`/blog/${post.slug}`}
                       className="block text-sm text-brand hover:text-brand-light transition-colors"
                     >
-                      {post.title}
+                      {getBlogPostTitle(post, language)}
                     </Link>
                   ))}
                 </div>
@@ -236,7 +237,7 @@ const ProductPageClient: React.FC<ProductPageClientProps> = ({ product, relatedP
 
       {relatedProducts.length > 0 && (
         <section className="mt-10 pt-8 border-t border-border">
-          <h2 className="font-serif text-xl sm:text-2xl text-brand-dark mb-4">You may also like</h2>
+          <h2 className="font-serif text-xl sm:text-2xl text-brand-dark mb-4">{t('you_may_also_like')}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {relatedProducts.map((p) => {
               const name = getProductName(p, language);
@@ -254,7 +255,7 @@ const ProductPageClient: React.FC<ProductPageClientProps> = ({ product, relatedP
                   ) : null}
                   <div className="min-w-0">
                     <p className="font-medium text-brand-dark line-clamp-2">{name}</p>
-                    <p className="text-xs text-gray-400 mt-1">View product</p>
+                    <p className="text-xs text-gray-400 mt-1">{t('view_product')}</p>
                   </div>
                 </Link>
               );

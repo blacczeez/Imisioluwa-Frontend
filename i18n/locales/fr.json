@@ -105,6 +105,11 @@
   "copy_link": "Copier le lien",
   "link_copied": "Lien copié !",
   "view_product": "Voir le produit",
+  "learn_more": "En savoir plus",
+  "you_may_also_like": "Vous aimerez peut-être",
   "back_to_shop": "Retour à la boutique",
-  "page_not_found": "La page que vous recherchez n'existe pas."
+  "page_not_found": "La page que vous recherchez n'existe pas.",
+  "nav_blog": "Blog",
+  "nav_currency": "Devise",
+  "nav_language": "Langue"
 }

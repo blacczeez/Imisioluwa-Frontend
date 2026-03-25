@@ -1,11 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { Product, Category } from '@/types';
 import ProductCard from '@/components/ProductCard';
-import ProductModal from '@/components/ProductModal';
 import { useLanguage } from '@/context/LanguageContext';
 import { getCategoryName } from '@/utils/helpers';
 import Breadcrumbs from '@/components/Breadcrumbs';
@@ -19,8 +18,6 @@ interface CategoryPageClientProps {
 const CategoryPageClient: React.FC<CategoryPageClientProps> = ({ category }) => {
   const { t } = useTranslation();
   const { language } = useLanguage();
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-
   const categoryName = getCategoryName(category, language);
   const categoryUrl = `${SITE_URL}/category/${category.slug}`;
   const relatedPosts = BLOG_POSTS.map((post) => {
@@ -74,23 +71,11 @@ const CategoryPageClient: React.FC<CategoryPageClientProps> = ({ category }) => 
           <p className="text-gray-500 text-lg">{t('no_products_found')}</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
           {category.products.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              onClick={setSelectedProduct}
-            />
+            <ProductCard key={product.id} product={product} />
           ))}
         </div>
-      )}
-
-      {selectedProduct && (
-        <ProductModal
-          product={selectedProduct}
-          isOpen={!!selectedProduct}
-          onClose={() => setSelectedProduct(null)}
-        />
       )}
 
       {relatedPosts.length > 0 && (

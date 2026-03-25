@@ -2,7 +2,9 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useRouter } from 'next/navigation';
 import { Language } from '@/types';
+import { LOCALE_COOKIE } from '@/lib/store-locale';
 
 interface LanguageContextType {
   language: Language;
@@ -14,6 +16,7 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { i18n } = useTranslation();
+  const router = useRouter();
   const [language, setLanguageState] = useState<Language>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('language');
@@ -25,8 +28,17 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
   useEffect(() => {
     i18n.changeLanguage(language);
     localStorage.setItem('language', language);
+    if (typeof document === 'undefined') return;
     document.documentElement.lang = language;
-  }, [language, i18n]);
+    const match = document.cookie.match(new RegExp(`(?:^|; )${LOCALE_COOKIE}=([^;]*)`));
+    const prevCookie = match?.[1];
+    document.cookie = `${LOCALE_COOKIE}=${language};path=/;max-age=31536000;SameSite=Lax`;
+    const cookieMismatch = prevCookie !== language;
+    const skipRefreshForDefaultEn = prevCookie === undefined && language === 'en';
+    if (cookieMismatch && !skipRefreshForDefaultEn) {
+      router.refresh();
+    }
+  }, [language, i18n, router]);
 
   const toggleLanguage = () => {
     setLanguageState((prev) => (prev === 'en' ? 'yo' : 'en'));

@@ -11,10 +11,14 @@ import { getProductName, getProductPrice, formatCurrency } from '@/utils/helpers
 
 interface ProductCardProps {
   product: Product;
-  onClick: (product: Product) => void;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ product, onClick }) => {
+const productHref = (product: Product) => {
+  const slug = product.slug?.trim();
+  return `/product/${slug && slug.length > 0 ? slug : product.id}`;
+};
+
+const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const { language } = useLanguage();
   const { currency } = useCurrency();
   const { t } = useTranslation();
@@ -25,17 +29,16 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onClick }) => {
 
   return (
     <Link
-      href={`/product/${product.slug ?? product.id}`}
-      onClick={() => onClick(product)}
+      href={productHref(product)}
       className="group border border-border rounded-xl overflow-hidden cursor-pointer bg-white hover:border-brand-300 transition-colors duration-200 block"
     >
-      <div className="relative h-48 sm:h-64 bg-brand-50">
+      <div className="relative h-36 sm:h-52 md:h-64 bg-brand-50">
         {product.image_urls && product.image_urls.length > 0 ? (
           <Image
             src={product.image_urls[0]}
             alt={productName}
             fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
+            sizes="(max-width: 768px) 50vw, (max-width: 1024px) 50vw, 25vw"
             className="object-cover"
           />
         ) : (
@@ -58,20 +61,20 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onClick }) => {
           </div>
         )}
       </div>
-      <div className="p-4 flex justify-between items-end">
-        <div>
-          <h3 className="text-sm font-semibold text-brand-dark uppercase tracking-label mb-1 line-clamp-2">
+      <div className="p-2.5 sm:p-4 flex justify-between items-end gap-1">
+        <div className="min-w-0 flex-1">
+          <h3 className="text-xs sm:text-sm font-semibold text-brand-dark uppercase tracking-label mb-0.5 sm:mb-1 line-clamp-2 leading-snug">
             {productName}
           </h3>
           {product.stock_quantity > 0 && (
             <span className="text-xs text-success font-medium">{t('in_stock')}</span>
           )}
         </div>
-        <div className="flex flex-col items-end">
-          <span className="text-lg font-bold text-brand-dark">
+        <div className="flex flex-col items-end shrink-0">
+          <span className="text-sm sm:text-lg font-bold text-brand-dark tabular-nums">
             {formatCurrency(price, currency)}
           </span>
-          <span className="text-brand-light group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200 text-lg">
+          <span className="text-brand-light group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200 text-sm sm:text-lg leading-none" aria-hidden>
             &#8599;
           </span>
         </div>
