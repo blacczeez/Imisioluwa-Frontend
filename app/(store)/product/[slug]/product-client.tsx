@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { Product } from '@/types';
@@ -12,12 +13,14 @@ import { getProductName, getProductDescription, getProductPrice, formatCurrency,
 import Breadcrumbs from '@/components/Breadcrumbs';
 import ShareButtons from '@/components/ShareButtons';
 import { SITE_URL } from '@/lib/constants';
+import { BLOG_POSTS } from '@/lib/blog-posts';
 
 interface ProductPageClientProps {
   product: Product;
+  relatedProducts?: Product[];
 }
 
-const ProductPageClient: React.FC<ProductPageClientProps> = ({ product }) => {
+const ProductPageClient: React.FC<ProductPageClientProps> = ({ product, relatedProducts = [] }) => {
   const router = useRouter();
   const { t } = useTranslation();
   const { language } = useLanguage();
@@ -30,6 +33,19 @@ const ProductPageClient: React.FC<ProductPageClientProps> = ({ product }) => {
   const price = getProductPrice(product, currency);
   const productUrl = `${SITE_URL}/product/${product.slug ?? product.id}`;
   const productImage = product.image_urls?.[0] || '';
+  const relatedPosts = BLOG_POSTS.map((post) => {
+    const text = `${product.name_en} ${product.description_en} ${product.category?.name_en ?? ''}`.toLowerCase();
+    const score = post.keywords.reduce((acc, keyword) => {
+      const tokens = keyword.toLowerCase().split(' ');
+      const tokenHits = tokens.filter((token) => token.length > 2 && text.includes(token)).length;
+      return acc + tokenHits;
+    }, 0);
+    return { post, score };
+  })
+    .filter((item) => item.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 2)
+    .map((item) => item.post);
 
   const handleBuyNow = () => {
     addToCart(product, quantity);
@@ -195,9 +211,57 @@ const ProductPageClient: React.FC<ProductPageClientProps> = ({ product }) => {
             <div className="pt-6 border-t border-border">
               <ShareButtons url={productUrl} title={productName} />
             </div>
+
+            {relatedPosts.length > 0 && (
+              <div className="pt-6 mt-6 border-t border-border">
+                <h3 className="text-xs sm:text-sm font-semibold uppercase tracking-label text-brand-dark mb-3">
+                  Learn More
+                </h3>
+                <div className="space-y-2">
+                  {relatedPosts.map((post) => (
+                    <Link
+                      key={post.slug}
+                      href={`/blog/${post.slug}`}
+                      className="block text-sm text-brand hover:text-brand-light transition-colors"
+                    >
+                      {post.title}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
+
+      {relatedProducts.length > 0 && (
+        <section className="mt-10 pt-8 border-t border-border">
+          <h2 className="font-serif text-xl sm:text-2xl text-brand-dark mb-4">You may also like</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {relatedProducts.map((p) => {
+              const name = getProductName(p, language);
+              const thumb = p.image_urls?.[0];
+              return (
+                <Link
+                  key={p.id}
+                  href={`/product/${p.slug ?? p.id}`}
+                  className="flex gap-3 bg-white border border-border rounded-lg p-3 hover:border-brand-300 transition-colors"
+                >
+                  {thumb ? (
+                    <div className="relative w-20 h-20 shrink-0 rounded-md overflow-hidden bg-brand-50">
+                      <Image src={thumb} alt={name} fill className="object-cover" sizes="80px" />
+                    </div>
+                  ) : null}
+                  <div className="min-w-0">
+                    <p className="font-medium text-brand-dark line-clamp-2">{name}</p>
+                    <p className="text-xs text-gray-400 mt-1">View product</p>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      )}
     </div>
   );
 };

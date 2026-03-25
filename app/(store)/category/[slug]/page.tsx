@@ -18,12 +18,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     // Use first product image as category OG image if available
     const categoryImage = category.products?.[0]?.image_urls?.[0];
 
+    const title = `Shop ${category.name_en} - Authentic African ${category.name_en}`;
+    const description = `Shop ${category.name_en} from Imisioluwa. Authentic African products with trusted sourcing, delivery across Nigeria, and worldwide shipping options.`;
+
     return {
-      title: category.name_en,
-      description: `Shop ${category.name_en} — authentic African traditional products from Imisioluwa. Free delivery in Nigeria, worldwide shipping available.`,
+      title,
+      description,
       openGraph: {
-        title: `${category.name_en} | Imisioluwa`,
-        description: `Shop ${category.name_en} — authentic African traditional products from Imisioluwa.`,
+        title: `${title} | Imisioluwa`,
+        description,
         url: categoryUrl,
         siteName: 'Imisioluwa',
         locale: 'en_NG',
@@ -32,8 +35,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       },
       twitter: {
         card: 'summary_large_image',
-        title: `${category.name_en} | Imisioluwa`,
-        description: `Shop ${category.name_en} — authentic African traditional products from Imisioluwa.`,
+        title: `${title} | Imisioluwa`,
+        description,
         images: categoryImage ? [categoryImage] : undefined,
       },
       alternates: {

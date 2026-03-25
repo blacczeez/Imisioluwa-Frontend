@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 interface BreadcrumbItem {
   label: string;
@@ -15,6 +16,7 @@ interface BreadcrumbsProps {
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 
 const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ items }) => {
+  const pathname = usePathname();
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
@@ -22,7 +24,7 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ items }) => {
       '@type': 'ListItem',
       position: index + 1,
       name: item.label,
-      ...(item.href ? { item: `${SITE_URL}${item.href}` } : {}),
+      item: `${SITE_URL}${item.href ?? pathname}`,
     })),
   };
 

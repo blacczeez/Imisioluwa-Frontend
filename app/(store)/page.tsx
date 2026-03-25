@@ -50,6 +50,26 @@ export default async function HomePage() {
         description: 'Shop authentic African traditional soaps, spiritual oils, herbal remedies, and food products. Sourced from trusted makers with worldwide shipping.',
       },
       {
+        '@type': 'OnlineStore',
+        name: 'Imisioluwa',
+        url: SITE_URL,
+        description:
+          'Online store for authentic African spiritual products, herbal remedies, and Nigerian food items with local and international shipping.',
+        currenciesAccepted: ['NGN', 'USD', 'GBP', 'EUR'],
+        availableLanguage: ['en', 'yo'],
+        areaServed: ['NG', 'GB', 'US', 'CA', 'AE', 'EU'],
+        hasOfferCatalog: {
+          '@type': 'OfferCatalog',
+          name: 'Imisioluwa Product Catalog',
+          itemListElement: [
+            { '@type': 'OfferCatalog', name: 'Spiritual Products' },
+            { '@type': 'OfferCatalog', name: 'Herbal Remedies' },
+            { '@type': 'OfferCatalog', name: 'Food and Spices' },
+            { '@type': 'OfferCatalog', name: 'Cultural Goods' },
+          ],
+        },
+      },
+      {
         '@type': 'WebSite',
         name: 'Imisioluwa',
         url: SITE_URL,

@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { serverFetch } from '@/lib/api';
-import { Product } from '@/types';
+import { Category, Product } from '@/types';
 import { SITE_URL } from '@/lib/constants';
 import ProductPageClient from './product-client';
 
@@ -16,12 +16,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const productUrl = `${SITE_URL}/product/${product.slug ?? product.id}`;
     const productImage = product.image_urls?.[0];
 
+    const categoryName = product.category?.name_en;
+    const descriptor = categoryName
+      ? `Authentic African ${categoryName}`
+      : 'Authentic African Spiritual Product';
+    const enrichedTitle = `${product.name_en} - ${descriptor}`;
+    const description = product.description_en?.trim()
+      ? `${product.description_en.slice(0, 140)} Shop with reliable delivery in Nigeria and worldwide shipping.`
+      : `Buy ${product.name_en} from Imisioluwa. Authentic African traditional products with local and international delivery options.`;
+
     return {
-      title: product.name_en,
-      description: product.description_en,
+      title: enrichedTitle,
+      description,
       openGraph: {
-        title: `${product.name_en} | Imisioluwa`,
-        description: product.description_en,
+        title: `${enrichedTitle} | Imisioluwa`,
+        description,
         url: productUrl,
         siteName: 'Imisioluwa',
         images: productImage ? [{ url: productImage }] : [],
@@ -30,8 +39,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       },
       twitter: {
         card: productImage ? 'summary_large_image' : 'summary',
-        title: `${product.name_en} | Imisioluwa`,
-        description: product.description_en,
+        title: `${enrichedTitle} | Imisioluwa`,
+        description,
         images: productImage ? [productImage] : [],
       },
       alternates: {
@@ -53,5 +62,18 @@ export default async function ProductPage({ params }: Props) {
     notFound();
   }
 
-  return <ProductPageClient product={product} />;
+  let relatedProducts: Product[] = [];
+  const categorySlug = product.category?.slug;
+  if (categorySlug) {
+    try {
+      const cat = await serverFetch<Category & { products: Product[] }>(`/categories/${categorySlug}`, {
+        revalidate: 120,
+      });
+      relatedProducts = cat.products.filter((p) => p.id !== product.id).slice(0, 4);
+    } catch {
+      relatedProducts = [];
+    }
+  }
+
+  return <ProductPageClient product={product} relatedProducts={relatedProducts} />;
 }

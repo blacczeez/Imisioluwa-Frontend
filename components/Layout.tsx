@@ -69,6 +69,12 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               >
                 {t('track_order')}
               </Link>
+              <Link
+                href="/blog"
+                className="hidden sm:inline text-sm font-medium uppercase tracking-label text-brand-dark hover:text-brand-light transition-colors"
+              >
+                Blog
+              </Link>
               <div className="hidden sm:block"><CurrencySwitcher /></div>
               <div className="hidden sm:block"><LanguageSwitcher /></div>
 
@@ -146,6 +152,12 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               {t('track_order')}
             </Link>
             <Link
+              href="/blog"
+              className="px-3 py-2.5 rounded text-sm font-medium text-brand-dark hover:bg-brand-50 transition-colors"
+            >
+              Blog
+            </Link>
+            <Link
               href="/cart"
               className="px-3 py-2.5 rounded text-sm font-medium text-brand-dark hover:bg-brand-50 transition-colors"
             >
@@ -212,6 +224,10 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           <div className="mb-4">
             <Link href="/track-order" className="text-white hover:text-brand-light transition-colors">
               {t('track_order')}
+            </Link>
+            <span className="mx-2 text-white/30">|</span>
+            <Link href="/blog" className="text-white hover:text-brand-light transition-colors">
+              Blog
             </Link>
           </div>
 
