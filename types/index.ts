@@ -65,6 +65,8 @@ export interface Order {
   payment_reference?: string;
   currency?: string;
   country?: string;
+  shipping_state?: string;
+  shipping_lga?: string;
   shipping_cost?: number;
   payment_gateway?: string;
   notes?: string;

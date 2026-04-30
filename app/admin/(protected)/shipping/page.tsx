@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { adminApi } from '@/services/admin';
 import { Spinner, Button, CustomSelect, ConfirmModal } from '@/components/ui';
+import { NIGERIA_STATES } from '@/lib/nigeria-states';
 
 interface ShippingZone {
   id: string;
@@ -11,6 +12,14 @@ interface ShippingZone {
   currency: string;
   flat_rate: number;
   free_shipping_above: number | null;
+  is_active: boolean;
+}
+
+interface NigeriaShippingRate {
+  id: string;
+  state: string;
+  lga: string;
+  price: number;
   is_active: boolean;
 }
 
@@ -24,6 +33,7 @@ const emptyZone = {
 
 export default function AdminShippingPage() {
   const [zones, setZones] = useState<ShippingZone[]>([]);
+  const [nigeriaRates, setNigeriaRates] = useState<NigeriaShippingRate[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
@@ -31,6 +41,26 @@ export default function AdminShippingPage() {
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [nigeriaForm, setNigeriaForm] = useState({ state: '', lga: '', price: '' });
+  const [nigeriaSaving, setNigeriaSaving] = useState(false);
+  const [nigeriaDeletingId, setNigeriaDeletingId] = useState<string | null>(null);
+  const [nigeriaDeleting, setNigeriaDeleting] = useState(false);
+  const [nigeriaRatesQuery, setNigeriaRatesQuery] = useState('');
+  const [nigeriaDefaultPrice, setNigeriaDefaultPrice] = useState('');
+  const [nigeriaDefaultSaving, setNigeriaDefaultSaving] = useState(false);
+
+  const filteredNigeriaRates = useMemo(() => {
+    const q = nigeriaRatesQuery.trim().toLowerCase();
+    if (!q) return nigeriaRates;
+    return nigeriaRates.filter((rate) => {
+      const priceStr = String(rate.price);
+      return (
+        rate.state.toLowerCase().includes(q) ||
+        rate.lga.toLowerCase().includes(q) ||
+        priceStr.includes(q)
+      );
+    });
+  }, [nigeriaRates, nigeriaRatesQuery]);
 
   useEffect(() => {
     loadZones();
@@ -38,8 +68,14 @@ export default function AdminShippingPage() {
 
   const loadZones = async () => {
     try {
-      const response = await adminApi.getShippingZones();
-      setZones(response.data);
+      const [zonesResponse, nigeriaResponse, settingsResponse] = await Promise.all([
+        adminApi.getShippingZones(),
+        adminApi.getNigeriaShippingRates(),
+        adminApi.getSettings(),
+      ]);
+      setZones(zonesResponse.data);
+      setNigeriaRates(nigeriaResponse.data);
+      setNigeriaDefaultPrice(settingsResponse.data.shipping_nigeria_lga_default ?? '');
     } catch (error) {
       console.error('Error loading shipping zones:', error);
     } finally {
@@ -114,6 +150,54 @@ export default function AdminShippingPage() {
     setEditingId(null);
     setShowAdd(false);
     setForm(emptyZone);
+  };
+
+  const nigeriaLgaOptions = NIGERIA_STATES.find((state) => state.name === nigeriaForm.state)?.lgas || [];
+
+  const handleSaveNigeriaRate = async () => {
+    if (!nigeriaForm.state || !nigeriaForm.lga || !nigeriaForm.price) return;
+    setNigeriaSaving(true);
+    try {
+      await adminApi.upsertNigeriaShippingRate({
+        state: nigeriaForm.state,
+        lga: nigeriaForm.lga,
+        price: Number(nigeriaForm.price),
+      });
+      setNigeriaForm({ state: '', lga: '', price: '' });
+      loadZones();
+    } catch (error) {
+      console.error('Error saving Nigeria shipping rate:', error);
+    } finally {
+      setNigeriaSaving(false);
+    }
+  };
+
+  const handleSaveNigeriaDefault = async () => {
+    setNigeriaDefaultSaving(true);
+    try {
+      await adminApi.updateSettings({
+        shipping_nigeria_lga_default: nigeriaDefaultPrice.trim(),
+      });
+      loadZones();
+    } catch (error) {
+      console.error('Error saving Nigeria default shipping:', error);
+    } finally {
+      setNigeriaDefaultSaving(false);
+    }
+  };
+
+  const handleDeleteNigeriaRate = async () => {
+    if (!nigeriaDeletingId) return;
+    setNigeriaDeleting(true);
+    try {
+      await adminApi.deleteNigeriaShippingRate(nigeriaDeletingId);
+      setNigeriaDeletingId(null);
+      loadZones();
+    } catch (error) {
+      console.error('Error deleting Nigeria shipping rate:', error);
+    } finally {
+      setNigeriaDeleting(false);
+    }
   };
 
   if (loading) {
@@ -195,8 +279,138 @@ export default function AdminShippingPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="font-serif text-3xl text-brand-dark">Shipping Zones</h1>
+      <div className="mb-10 bg-white rounded-xl border border-border p-4 sm:p-6">
+        <h2 className="font-serif text-2xl text-brand-dark mb-2">Nigeria Shipping (State + LGA)</h2>
+        <p className="text-sm text-gray-500 mb-4">
+          Set shipping price per local government area when the customer&apos;s country is Nigeria. If an LGA has no row below, checkout uses the default amount (when set).
+        </p>
+
+        <div className="mb-6 p-4 rounded-lg border border-border bg-brand-50/50">
+          <label className={labelClassName}>Default shipping (NGN) when LGA has no price</label>
+          <p className="text-xs text-gray-500 mb-2">
+            Optional. Used only when the buyer selects a state + LGA that is not in the table below. Leave empty to require an explicit LGA price.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 sm:items-end">
+            <input
+              className={`${inputClassName} sm:max-w-xs`}
+              type="number"
+              step="0.01"
+              min="0"
+              value={nigeriaDefaultPrice}
+              onChange={(e) => setNigeriaDefaultPrice(e.target.value)}
+              placeholder="e.g. 3000"
+            />
+            <Button onClick={handleSaveNigeriaDefault} loading={nigeriaDefaultSaving}>
+              Save default
+            </Button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div>
+            <label className={labelClassName}>State</label>
+            <CustomSelect
+              value={nigeriaForm.state}
+              onChange={(val) => setNigeriaForm({ state: val, lga: '', price: nigeriaForm.price })}
+              options={NIGERIA_STATES.map((state) => ({ value: state.name, label: state.name }))}
+              variant="form"
+            />
+          </div>
+          <div>
+            <label className={labelClassName}>Local Government</label>
+            <CustomSelect
+              value={nigeriaForm.lga}
+              onChange={(val) => setNigeriaForm({ ...nigeriaForm, lga: val })}
+              options={nigeriaLgaOptions.map((lga) => ({ value: lga, label: lga }))}
+              variant="form"
+              disabled={!nigeriaForm.state}
+            />
+          </div>
+          <div>
+            <label className={labelClassName}>Price (NGN)</label>
+            <input
+              className={inputClassName}
+              type="number"
+              step="0.01"
+              value={nigeriaForm.price}
+              onChange={(e) => setNigeriaForm({ ...nigeriaForm, price: e.target.value })}
+              placeholder="e.g. 2500"
+            />
+          </div>
+        </div>
+
+        <div className="mt-3">
+          <Button onClick={handleSaveNigeriaRate} loading={nigeriaSaving}>Save LGA Price</Button>
+        </div>
+
+        <div className="mt-5 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+          <div className="flex-1 max-w-md">
+            <label className={labelClassName} htmlFor="nigeria-rates-search">Search rates</label>
+            <input
+              id="nigeria-rates-search"
+              type="search"
+              className={inputClassName}
+              value={nigeriaRatesQuery}
+              onChange={(e) => setNigeriaRatesQuery(e.target.value)}
+              placeholder="State, LGA, or price…"
+              autoComplete="off"
+            />
+          </div>
+          <p className="text-sm text-gray-500 pb-2">
+            {filteredNigeriaRates.length === nigeriaRates.length
+              ? `${nigeriaRates.length} rate${nigeriaRates.length !== 1 ? 's' : ''}`
+              : `${filteredNigeriaRates.length} of ${nigeriaRates.length} rates`}
+          </p>
+        </div>
+
+        <div className="mt-3 border border-border rounded-lg overflow-x-auto">
+          <table className="w-full min-w-[480px]">
+            <thead>
+              <tr className="bg-brand-50 border-b border-border">
+                <th className="text-left px-4 py-3 text-xs font-semibold text-brand-dark uppercase tracking-label">State</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-brand-dark uppercase tracking-label">LGA</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-brand-dark uppercase tracking-label">Price (NGN)</th>
+                <th className="text-right px-4 py-3 text-xs font-semibold text-brand-dark uppercase tracking-label">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredNigeriaRates.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-4 py-8 text-center text-sm text-gray-500">
+                    {nigeriaRates.length === 0
+                      ? 'No LGA rates yet. Add one above.'
+                      : 'No rates match your search.'}
+                  </td>
+                </tr>
+              ) : (
+                filteredNigeriaRates.map((rate) => (
+                  <tr key={rate.id} className="border-b border-border last:border-0">
+                    <td className="px-4 py-3 text-sm font-medium text-brand-dark">{rate.state}</td>
+                    <td className="px-4 py-3 text-sm text-gray-500">{rate.lga}</td>
+                    <td className="px-4 py-3 text-sm font-medium text-brand-dark">{rate.price}</td>
+                    <td className="px-4 py-3 text-right">
+                      <button
+                        onClick={() => setNigeriaDeletingId(rate.id)}
+                        className="text-xs font-medium text-danger hover:text-red-700 uppercase tracking-label"
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
+        <div>
+          <h1 className="font-serif text-3xl text-brand-dark">Shipping zones</h1>
+          <p className="text-sm text-gray-500 mt-2 max-w-2xl">
+            Flat rates by country (and currency) for destinations outside Nigeria. Nigeria is only set in <strong className="font-medium text-brand-dark">Nigeria Shipping</strong> above (LGA prices + default).
+          </p>
+        </div>
         {!showAdd && !editingId && (
           <Button onClick={() => setShowAdd(true)}>Add Zone</Button>
         )}
@@ -219,7 +433,14 @@ export default function AdminShippingPage() {
             </tr>
           </thead>
           <tbody>
-            {zones.map((zone) => (
+            {zones.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="px-4 py-8 text-center text-sm text-gray-500">
+                  No shipping zones yet.
+                </td>
+              </tr>
+            ) : (
+              zones.map((zone) => (
               <tr key={zone.id} className="border-b border-border last:border-0">
                 <td className="px-4 py-3 text-sm font-medium text-brand-dark">{zone.name}</td>
                 <td className="px-4 py-3 text-sm text-gray-500">
@@ -261,14 +482,20 @@ export default function AdminShippingPage() {
                   </div>
                 </td>
               </tr>
-            ))}
+              ))
+            )}
           </tbody>
         </table>
       </div>
 
       {/* Mobile cards */}
       <div className="md:hidden mt-6 space-y-3">
-        {zones.map((zone) => (
+        {zones.length === 0 ? (
+          <div className="bg-white rounded-xl border border-border p-6 text-center text-sm text-gray-500">
+            No shipping zones yet.
+          </div>
+        ) : (
+          zones.map((zone) => (
           <div key={zone.id} className="bg-white rounded-xl border border-border p-4">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-brand-dark">{zone.name}</span>
@@ -317,7 +544,8 @@ export default function AdminShippingPage() {
               </button>
             </div>
           </div>
-        ))}
+          ))
+        )}
       </div>
 
       <ConfirmModal
@@ -327,6 +555,14 @@ export default function AdminShippingPage() {
         title="Delete Shipping Zone"
         message="Are you sure you want to delete this shipping zone?"
         loading={deleting}
+      />
+      <ConfirmModal
+        isOpen={!!nigeriaDeletingId}
+        onClose={() => setNigeriaDeletingId(null)}
+        onConfirm={handleDeleteNigeriaRate}
+        title="Delete Nigeria LGA Rate"
+        message="Are you sure you want to delete this Nigeria LGA shipping rate?"
+        loading={nigeriaDeleting}
       />
     </div>
   );

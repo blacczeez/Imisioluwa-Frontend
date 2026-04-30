@@ -12,12 +12,15 @@ import { paymentService } from '@/services/payments';
 import { formatCurrency, getProductName, getProductPrice } from '@/utils/helpers';
 import { Spinner } from '@/components/ui';
 import { useToast } from '@/context/ToastContext';
+import { NIGERIA_STATES } from '@/lib/nigeria-states';
 
 interface CheckoutFormData {
   customer_name: string;
   customer_email: string;
   phone: string;
   delivery_address: string;
+  shipping_state?: string;
+  shipping_lga?: string;
   notes?: string;
   payment_method: 'online' | 'cod';
 }
@@ -29,6 +32,8 @@ interface ShippingRate {
   flatRate?: number;
   freeShippingAbove?: number;
   message?: string;
+  /** True when Nigeria LGA has no specific price and server used admin default */
+  usingDefault?: boolean;
 }
 
 export default function CheckoutClient() {
@@ -47,8 +52,14 @@ export default function CheckoutClient() {
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<CheckoutFormData>();
+  const selectedState = watch('shipping_state');
+  const selectedLga = watch('shipping_lga');
+  const stateOptions = NIGERIA_STATES.map((s) => s.name);
+  const lgaOptions = NIGERIA_STATES.find((s) => s.name === selectedState)?.lgas || [];
 
   useEffect(() => {
     orderService.getPaymentMethods().then(setPaymentMethods).catch(console.error);
@@ -57,12 +68,16 @@ export default function CheckoutClient() {
   useEffect(() => {
     if (country) {
       setLoadingShipping(true);
-      orderService.getShippingRate(country)
+      orderService.getShippingRate(country, selectedState, selectedLga)
         .then(setShippingRate)
         .catch(() => setShippingRate(null))
         .finally(() => setLoadingShipping(false));
     }
-  }, [country]);
+  }, [country, selectedState, selectedLga]);
+
+  useEffect(() => {
+    setValue('shipping_lga', '');
+  }, [selectedState, setValue]);
 
   if (cart.length === 0 && !orderPlacedLeavingCheckout.current) {
     router.push('/');
@@ -85,6 +100,8 @@ export default function CheckoutClient() {
         ...data,
         currency,
         country,
+        shipping_state: country === 'NG' ? data.shipping_state : undefined,
+        shipping_lga: country === 'NG' ? data.shipping_lga : undefined,
         items: cart.map((item) => ({
           product_id: item.product.id,
           quantity: item.quantity,
@@ -172,6 +189,41 @@ export default function CheckoutClient() {
                 {errors.delivery_address && <p className={errorClassName}>{errors.delivery_address.message}</p>}
               </div>
 
+              {country === 'NG' && (
+                <>
+                  <div>
+                    <label className={labelClassName}>State *</label>
+                    <select
+                      {...register('shipping_state', { required: 'State is required' })}
+                      className={inputClassName}
+                      defaultValue=""
+                    >
+                      <option value="" disabled>Select state</option>
+                      {stateOptions.map((stateName) => (
+                        <option key={stateName} value={stateName}>{stateName}</option>
+                      ))}
+                    </select>
+                    {errors.shipping_state && <p className={errorClassName}>{errors.shipping_state.message}</p>}
+                  </div>
+
+                  <div>
+                    <label className={labelClassName}>Local Government *</label>
+                    <select
+                      {...register('shipping_lga', { required: 'Local government is required' })}
+                      className={inputClassName}
+                      defaultValue=""
+                      disabled={!selectedState}
+                    >
+                      <option value="" disabled>{selectedState ? 'Select local government' : 'Select state first'}</option>
+                      {lgaOptions.map((lga) => (
+                        <option key={lga} value={lga}>{lga}</option>
+                      ))}
+                    </select>
+                    {errors.shipping_lga && <p className={errorClassName}>{errors.shipping_lga.message}</p>}
+                  </div>
+                </>
+              )}
+
               <div>
                 <label className={labelClassName}>Notes (Optional)</label>
                 <textarea {...register('notes')} rows={2} className={inputClassName} />
@@ -246,6 +298,9 @@ export default function CheckoutClient() {
                   {loadingShipping ? '...' : shippingCost === 0 ? t('free_shipping') : formatCurrency(shippingCost, currency)}
                 </span>
               </div>
+              {country === 'NG' && shippingRate?.available && shippingRate.usingDefault && (
+                <p className="text-xs text-gray-400">Using default Nigeria shipping (no specific price for this LGA).</p>
+              )}
             </div>
 
             <div className="h-px bg-border my-4"></div>
@@ -256,7 +311,7 @@ export default function CheckoutClient() {
 
             {shippingRate && !shippingRate.available && (
               <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-700">
-                {t('we_dont_ship_there')}
+                {shippingRate.message || t('we_dont_ship_there')}
               </div>
             )}
           </div>

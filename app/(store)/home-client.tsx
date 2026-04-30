@@ -66,9 +66,9 @@ const HomeClient: React.FC<HomeClientProps> = ({ initialProducts, initialCategor
 
   return (
     <div>
-      <div className="mb-6 sm:mb-12">
+      {/* <div className="mb-6 sm:mb-12">
         <HeroCarousel />
-      </div>
+      </div> */}
 
       <h1 className="font-serif text-2xl sm:text-3xl text-brand-dark mb-3 sm:mb-4">
         {t('shop_our_collection', 'Authentic African Traditional & Spiritual Products')}

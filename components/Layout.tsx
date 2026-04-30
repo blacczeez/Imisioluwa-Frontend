@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import LanguageSwitcher from './LanguageSwitcher';
 import CurrencySwitcher from './CurrencySwitcher';
+import OrderActivitySimulator from './OrderActivitySimulator';
 import { useTranslation } from 'react-i18next';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -34,6 +35,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-cream flex flex-col">
+      <OrderActivitySimulator />
       <div className="bg-brand-dark text-white text-center py-2.5 px-4">
         <p className="text-xs tracking-[0.15em] uppercase font-medium">
           {t('announcement_fast_free_delivery')}

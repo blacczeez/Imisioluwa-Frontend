@@ -10,6 +10,8 @@ interface CreateOrderData {
   payment_method: 'online' | 'cod';
   currency?: string;
   country?: string;
+  shipping_state?: string;
+  shipping_lga?: string;
   items: {
     product_id: string;
     quantity: number;
@@ -40,8 +42,8 @@ export const orderService = {
     return response.data;
   },
 
-  getShippingRate: async (country: string) => {
-    const response = await api.get('/shipping/rate', { params: { country } });
+  getShippingRate: async (country: string, state?: string, lga?: string) => {
+    const response = await api.get('/shipping/rate', { params: { country, state, lga } });
     return response.data;
   },
 };

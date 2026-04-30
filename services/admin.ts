@@ -44,4 +44,7 @@ export const adminApi = {
   createShippingZone: (data: any) => api.post('/admin/shipping-zones', data),
   updateShippingZone: (id: string, data: any) => api.put(`/admin/shipping-zones/${id}`, data),
   deleteShippingZone: (id: string) => api.delete(`/admin/shipping-zones/${id}`),
+  getNigeriaShippingRates: () => api.get('/admin/shipping-nigeria-rates'),
+  upsertNigeriaShippingRate: (data: any) => api.post('/admin/shipping-nigeria-rates', data),
+  deleteNigeriaShippingRate: (id: string) => api.delete(`/admin/shipping-nigeria-rates/${id}`),
 };
