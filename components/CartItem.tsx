@@ -7,7 +7,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import { useCurrency } from '@/context/CurrencyContext';
 import { useTranslation } from 'react-i18next';
 import { useCart } from '@/context/CartContext';
-import { getProductName, getProductPrice, formatCurrency } from '@/utils/helpers';
+import { getProductName, getProductPrice, formatCurrency, getVariantPrice } from '@/utils/helpers';
 
 interface CartItemProps {
   item: CartItemType;
@@ -19,19 +19,21 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
   const { t } = useTranslation();
   const { updateQuantity, removeFromCart } = useCart();
   const productName = getProductName(item.product, language);
-  const price = getProductPrice(item.product, currency) || 0;
+  const variant = item.product.variants?.find((entry) => entry.id === item.variantId);
+  const price = (variant ? getVariantPrice(variant, currency) : getProductPrice(item.product, currency)) || 0;
+  const availableStock = variant?.stock_quantity ?? item.product.stock_quantity;
 
   const handleIncrement = () => {
-    if (item.quantity < item.product.stock_quantity) {
-      updateQuantity(item.product.id, item.quantity + 1);
+    if (item.quantity < availableStock) {
+      updateQuantity(item.product.id, item.quantity + 1, item.variantId);
     }
   };
 
   const handleDecrement = () => {
     if (item.quantity > 1) {
-      updateQuantity(item.product.id, item.quantity - 1);
+      updateQuantity(item.product.id, item.quantity - 1, item.variantId);
     } else {
-      removeFromCart(item.product.id);
+      removeFromCart(item.product.id, item.variantId);
     }
   };
 
@@ -56,6 +58,9 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
       </div>
       <div className="flex-1">
         <h3 className="font-semibold text-brand-dark text-sm uppercase tracking-label mb-1">{productName}</h3>
+        {item.variantWeightMl && (
+          <p className="text-xs text-gray-500 mb-1">{item.variantWeightMl}ml</p>
+        )}
         <p className="text-brand font-semibold mb-3">
           {formatCurrency(price, currency)}
         </p>
@@ -70,7 +75,7 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
           <button
             onClick={handleIncrement}
             className="w-8 h-8 border border-border hover:border-brand-300 rounded text-sm font-medium transition-colors"
-            disabled={item.quantity >= item.product.stock_quantity}
+            disabled={item.quantity >= availableStock}
           >
             +
           </button>
@@ -78,7 +83,7 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
       </div>
       <div className="flex flex-col items-end justify-between">
         <button
-          onClick={() => removeFromCart(item.product.id)}
+          onClick={() => removeFromCart(item.product.id, item.variantId)}
           className="text-danger hover:text-red-700 font-medium text-xs uppercase tracking-label transition-colors"
         >
           {t('remove')}

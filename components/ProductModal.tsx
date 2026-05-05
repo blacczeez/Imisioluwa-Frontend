@@ -8,7 +8,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import { useCurrency } from '@/context/CurrencyContext';
 import { useTranslation } from 'react-i18next';
 import { useCart } from '@/context/CartContext';
-import { getProductName, getProductDescription, getProductPrice, formatCurrency } from '@/utils/helpers';
+import { getProductName, getProductDescription, getProductPrice, formatCurrency, getActiveVariants, getCheapestVariant, getVariantPrice } from '@/utils/helpers';
 
 interface ProductModalProps {
   product: Product;
@@ -26,24 +26,31 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, isOpen, onClose })
 
   const productName = getProductName(product, language);
   const productDescription = getProductDescription(product, language);
-  const price = getProductPrice(product, currency);
+  const activeVariants = getActiveVariants(product);
+  const cheapestVariant = getCheapestVariant(product, currency);
+  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(cheapestVariant?.id ?? activeVariants[0]?.id ?? null);
+  const selectedVariant = activeVariants.find((variant) => variant.id === selectedVariantId) ?? null;
+  const price = selectedVariant ? getVariantPrice(selectedVariant, currency) : getProductPrice(product, currency);
+  const availableStock = selectedVariant?.stock_quantity ?? product.stock_quantity;
 
   if (!isOpen) return null;
 
   const handleBuyNow = () => {
-    addToCart(product, quantity);
+    if (availableStock <= 0) return;
+    addToCart(product, quantity, selectedVariant ?? undefined);
     onClose();
     router.push('/cart');
   };
 
   const handleContinueShopping = () => {
-    addToCart(product, quantity);
+    if (availableStock <= 0) return;
+    addToCart(product, quantity, selectedVariant ?? undefined);
     onClose();
     setQuantity(1);
   };
 
   const handleIncrement = () => {
-    if (quantity < product.stock_quantity) {
+    if (quantity < availableStock) {
       setQuantity(quantity + 1);
     }
   };
@@ -92,6 +99,27 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, isOpen, onClose })
           </div>
 
           <p className="text-gray-500 mb-4 leading-relaxed">{productDescription}</p>
+          {activeVariants.length > 0 && (
+            <div className="mb-4 flex flex-wrap gap-2">
+              {activeVariants.map((variant) => (
+                <button
+                  key={variant.id}
+                  type="button"
+                  onClick={() => {
+                    setSelectedVariantId(variant.id);
+                    setQuantity(1);
+                  }}
+                  className={`px-3 py-1.5 rounded-full border text-sm transition-colors ${
+                    selectedVariantId === variant.id
+                      ? 'border-brand bg-brand text-white'
+                      : 'border-border text-brand-dark hover:border-brand-300'
+                  }`}
+                >
+                  {variant.weight_ml}ml
+                </button>
+              ))}
+            </div>
+          )}
 
           <div className="font-serif text-3xl text-brand-dark mb-8">
             {price !== null ? formatCurrency(price, currency) : t('not_available_in_currency')}
@@ -114,23 +142,23 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, isOpen, onClose })
                     value={quantity}
                     onChange={(e) => {
                       const val = parseInt(e.target.value);
-                      if (val > 0 && val <= product.stock_quantity) {
+                      if (val > 0 && val <= availableStock) {
                         setQuantity(val);
                       }
                     }}
                     className="w-16 h-10 text-center border border-border rounded-lg text-lg font-semibold focus:ring-2 focus:ring-brand-light focus:border-transparent"
                     min="1"
-                    max={product.stock_quantity}
+                    max={availableStock}
                   />
                   <button
                     onClick={handleIncrement}
                     className="w-10 h-10 border border-border hover:border-brand-300 rounded-lg text-lg font-medium transition-colors disabled:opacity-30"
-                    disabled={quantity >= product.stock_quantity}
+                    disabled={quantity >= availableStock}
                   >
                     +
                   </button>
                   <span className="text-sm text-gray-400">
-                    ({product.stock_quantity} {t('in_stock')})
+                    ({availableStock} {t('in_stock')})
                   </span>
                 </div>
               </div>
@@ -138,13 +166,15 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, isOpen, onClose })
               <div className="flex flex-col gap-3">
                 <button
                   onClick={handleBuyNow}
-                  className="w-full py-4 bg-brand hover:bg-brand-light text-white rounded-lg font-semibold text-sm uppercase tracking-label transition-colors"
+                  disabled={availableStock <= 0}
+                  className="w-full py-4 bg-brand hover:bg-brand-light disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg font-semibold text-sm uppercase tracking-label transition-colors"
                 >
                   {t('buy_this')}
                 </button>
                 <button
                   onClick={handleContinueShopping}
-                  className="w-full py-4 border border-border hover:border-brand-300 text-brand-dark rounded-lg font-semibold text-sm uppercase tracking-label transition-colors"
+                  disabled={availableStock <= 0}
+                  className="w-full py-4 border border-border hover:border-brand-300 disabled:opacity-50 disabled:cursor-not-allowed text-brand-dark rounded-lg font-semibold text-sm uppercase tracking-label transition-colors"
                 >
                   {t('continue_looking')}
                 </button>

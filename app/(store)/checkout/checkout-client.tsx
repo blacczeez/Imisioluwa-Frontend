@@ -9,7 +9,7 @@ import { useCurrency } from '@/context/CurrencyContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { orderService } from '@/services/orders';
 import { paymentService } from '@/services/payments';
-import { formatCurrency, getProductName, getProductPrice } from '@/utils/helpers';
+import { formatCurrency, getProductName, getProductPrice, getVariantPrice } from '@/utils/helpers';
 import { Spinner } from '@/components/ui';
 import { useToast } from '@/context/ToastContext';
 import { NIGERIA_STATES } from '@/lib/nigeria-states';
@@ -104,8 +104,13 @@ export default function CheckoutClient() {
         shipping_lga: country === 'NG' ? data.shipping_lga : undefined,
         items: cart.map((item) => ({
           product_id: item.product.id,
+          ...(item.variantId ? { variant_id: item.variantId } : {}),
           quantity: item.quantity,
-          unit_price: getProductPrice(item.product, currency) || 0,
+          unit_price: (
+            item.product.variants?.find((variant) => variant.id === item.variantId)
+              ? getVariantPrice(item.product.variants.find((variant) => variant.id === item.variantId)!, currency)
+              : getProductPrice(item.product, currency)
+          ) || 0,
         })),
       };
 
@@ -271,11 +276,14 @@ export default function CheckoutClient() {
 
             <div className="space-y-3 mb-4">
               {cart.map((item) => {
-                const price = getProductPrice(item.product, currency) || 0;
+                const variant = item.product.variants?.find((entry) => entry.id === item.variantId);
+                const price = (variant ? getVariantPrice(variant, currency) : getProductPrice(item.product, currency)) || 0;
                 return (
-                  <div key={item.product.id} className="flex justify-between text-sm gap-4">
+                  <div key={`${item.product.id}-${item.variantId || 'base'}`} className="flex justify-between text-sm gap-4">
                     <span className="text-gray-500 flex-1">
-                      {getProductName(item.product, language)} <span className="text-brand-300">&times; {item.quantity}</span>
+                      {getProductName(item.product, language)}
+                      {item.variantWeightMl ? ` (${item.variantWeightMl}ml)` : ''}
+                      {' '}<span className="text-brand-300">&times; {item.quantity}</span>
                     </span>
                     <span className="font-medium text-brand-dark whitespace-nowrap">
                       {formatCurrency(price * item.quantity, currency)}

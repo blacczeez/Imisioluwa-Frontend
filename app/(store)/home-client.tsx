@@ -8,7 +8,7 @@ import ProductCard from '@/components/ProductCard';
 import { productService } from '@/services/products';
 import { useLanguage } from '@/context/LanguageContext';
 import { useCurrency } from '@/context/CurrencyContext';
-import { getCategoryName, getProductPrice } from '@/utils/helpers';
+import { getCategoryName } from '@/utils/helpers';
 import { Spinner, CustomSelect } from '@/components/ui';
 import HeroCarousel from '@/components/HeroCarousel';
 
@@ -38,7 +38,7 @@ const HomeClient: React.FC<HomeClientProps> = ({ initialProducts, initialCategor
     try {
       setLoading(true);
       const [productsData, categoriesData] = await Promise.all([
-        productService.getAll(),
+        productService.getAll({ limit: 200, include_out_of_stock: true, include_inactive: true }),
         productService.getCategories(),
       ]);
       setProducts(productsData.products);
@@ -56,8 +56,7 @@ const HomeClient: React.FC<HomeClientProps> = ({ initialProducts, initialCategor
       !searchQuery ||
       product.name_en.toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.name_yo.toLowerCase().includes(searchQuery.toLowerCase());
-    const hasPrice = getProductPrice(product, currency) !== null;
-    return matchesCategory && matchesSearch && product.is_active && hasPrice;
+    return matchesCategory && matchesSearch;
   });
 
   const categoriesWithProducts = categories.filter((category) =>

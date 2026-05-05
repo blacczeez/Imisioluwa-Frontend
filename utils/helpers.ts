@@ -1,4 +1,4 @@
-import { Currency } from '@/types';
+import { Currency, Product, ProductVariant } from '@/types';
 
 const CURRENCY_CONFIG: Record<Currency, { locale: string; code: string }> = {
   NGN: { locale: 'en-NG', code: 'NGN' },
@@ -27,6 +27,30 @@ export const getProductPrice = (
     case 'EUR': return product.price_eur ?? null;
     default: return product.price;
   }
+};
+
+export const getVariantPrice = (
+  variant: { price: number; price_usd?: number; price_gbp?: number; price_eur?: number },
+  currency: Currency
+): number | null => getProductPrice(variant, currency);
+
+export const getActiveVariants = (product: Product): ProductVariant[] => {
+  const variants = product.variants || [];
+  return variants.filter((variant) => variant.is_active);
+};
+
+export const getCheapestVariant = (product: Product, currency: Currency): ProductVariant | null => {
+  const variants = getActiveVariants(product);
+  if (variants.length === 0) return null;
+
+  const withPrices = variants
+    .map((variant) => ({ variant, price: getVariantPrice(variant, currency) }))
+    .filter((entry) => entry.price !== null) as Array<{ variant: ProductVariant; price: number }>;
+
+  if (withPrices.length === 0) return variants[0];
+
+  withPrices.sort((a, b) => a.price - b.price);
+  return withPrices[0].variant;
 };
 
 export const getProductName = (product: { name_en: string; name_yo: string }, language: string): string => {

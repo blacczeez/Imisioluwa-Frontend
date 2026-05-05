@@ -1,5 +1,19 @@
 export type Currency = 'NGN' | 'USD' | 'GBP' | 'EUR';
 
+export interface ProductVariant {
+  id: string;
+  product_id: string;
+  weight_ml: number;
+  price: number;
+  price_usd?: number;
+  price_gbp?: number;
+  price_eur?: number;
+  stock_quantity: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Product {
   id: string;
   slug: string;
@@ -12,6 +26,7 @@ export interface Product {
   price_gbp?: number;
   price_eur?: number;
   weight_kg?: number;
+  variants?: ProductVariant[];
   category_id: string;
   category?: Category;
   image_urls: string[];
@@ -41,6 +56,16 @@ export interface ProductFormData {
   price_gbp?: number;
   price_eur?: number;
   weight_kg?: number;
+  variants?: Array<{
+    id?: string;
+    weight_ml: number;
+    price: number;
+    price_usd?: number;
+    price_gbp?: number;
+    price_eur?: number;
+    stock_quantity: number;
+    is_active: boolean;
+  }>;
   category_id: string;
   stock_quantity: number;
   is_active: boolean;
@@ -48,6 +73,8 @@ export interface ProductFormData {
 
 export interface CartItem {
   product: Product;
+  variantId?: string;
+  variantWeightMl?: number;
   quantity: number;
 }
 

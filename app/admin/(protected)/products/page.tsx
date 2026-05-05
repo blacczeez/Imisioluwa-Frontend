@@ -17,15 +17,25 @@ export default function AdminProductsPage() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalProducts, setTotalProducts] = useState(0);
+  const PRODUCTS_PER_PAGE = 10;
 
   useEffect(() => {
-    loadProducts();
-  }, []);
+    loadProducts(currentPage);
+  }, [currentPage]);
 
-  const loadProducts = async () => {
+  const loadProducts = async (page = 1) => {
     try {
-      const response = await productService.getAll();
+      setLoading(true);
+      const response = await productService.getAll({
+        page,
+        limit: PRODUCTS_PER_PAGE,
+        include_out_of_stock: true,
+        include_inactive: true,
+      });
       setProducts(response.products);
+      setTotalProducts(response.total);
     } catch (error) {
       console.error('Error loading products:', error);
     } finally {
@@ -49,7 +59,7 @@ export default function AdminProductsPage() {
   };
 
   const handleSaved = () => {
-    loadProducts();
+    loadProducts(currentPage);
   };
 
   const handleDelete = async () => {
@@ -58,7 +68,7 @@ export default function AdminProductsPage() {
     try {
       await adminApi.deleteProduct(deletingId);
       setDeletingId(null);
-      loadProducts();
+      loadProducts(currentPage);
     } catch (error) {
       console.error('Error deleting product:', error);
       showToast('Failed to delete product');
@@ -70,12 +80,20 @@ export default function AdminProductsPage() {
   const toggleActive = async (product: Product) => {
     try {
       await adminApi.updateProduct(product.id, { is_active: !product.is_active });
-      loadProducts();
+      loadProducts(currentPage);
     } catch (error) {
       console.error('Error updating product:', error);
       showToast('Failed to update product');
     }
   };
+
+  const totalPages = Math.max(1, Math.ceil(totalProducts / PRODUCTS_PER_PAGE));
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   if (loading) {
     return (
@@ -234,6 +252,30 @@ export default function AdminProductsPage() {
           </div>
         ))}
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 mt-6">
+          <button
+            type="button"
+            onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+            disabled={currentPage === 1}
+            className="px-3 py-2 text-sm rounded-lg border border-border text-brand-dark disabled:opacity-40 disabled:cursor-not-allowed hover:border-brand-300 transition-colors"
+          >
+            Prev
+          </button>
+          <span className="text-sm text-gray-500 px-2">
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            type="button"
+            onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+            disabled={currentPage === totalPages}
+            className="px-3 py-2 text-sm rounded-lg border border-border text-brand-dark disabled:opacity-40 disabled:cursor-not-allowed hover:border-brand-300 transition-colors"
+          >
+            Next
+          </button>
+        </div>
+      )}
 
       <AddEditProductModal
         isOpen={modalOpen}

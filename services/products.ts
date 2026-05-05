@@ -2,7 +2,14 @@ import api from './api';
 import { Product, Category } from '@/types';
 
 export const productService = {
-  getAll: async (params?: { category?: string; search?: string; page?: number; limit?: number }) => {
+  getAll: async (params?: {
+    category?: string;
+    search?: string;
+    page?: number;
+    limit?: number;
+    include_out_of_stock?: boolean;
+    include_inactive?: boolean;
+  }) => {
     const response = await api.get<{ products: Product[]; total: number }>('/products', { params });
     return response.data;
   },

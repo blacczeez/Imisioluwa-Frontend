@@ -31,7 +31,7 @@ export default async function HomePage() {
 
   try {
     const [productsData, categoriesData] = await Promise.all([
-      serverFetch<{ products: Product[]; total: number }>('/products'),
+      serverFetch<{ products: Product[]; total: number }>('/products?limit=200&include_out_of_stock=true&include_inactive=true'),
       serverFetch<Category[]>('/categories'),
     ]);
     initialProducts = productsData.products;

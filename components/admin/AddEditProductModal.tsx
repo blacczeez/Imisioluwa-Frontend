@@ -22,6 +22,16 @@ const AddEditProductModal: React.FC<AddEditProductModalProps> = ({ isOpen, onClo
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [variants, setVariants] = useState<Array<{
+    id?: string;
+    weight_ml: number;
+    price: number;
+    price_usd?: number;
+    price_gbp?: number;
+    price_eur?: number;
+    stock_quantity: number;
+    is_active: boolean;
+  }>>([]);
 
   const {
     register,
@@ -40,6 +50,29 @@ const AddEditProductModal: React.FC<AddEditProductModalProps> = ({ isOpen, onClo
   useEffect(() => {
     if (isOpen) {
       if (product) {
+        const existingVariants = product.variants && product.variants.length > 0
+          ? product.variants
+            .slice()
+            .sort((a, b) => a.weight_ml - b.weight_ml)
+            .map((variant) => ({
+              id: variant.id,
+              weight_ml: variant.weight_ml,
+              price: variant.price,
+              price_usd: variant.price_usd,
+              price_gbp: variant.price_gbp,
+              price_eur: variant.price_eur,
+              stock_quantity: variant.stock_quantity,
+              is_active: variant.is_active,
+            }))
+          : [{
+            weight_ml: Math.round((product.weight_kg || 1) * 1000),
+            price: product.price,
+            price_usd: product.price_usd,
+            price_gbp: product.price_gbp,
+            price_eur: product.price_eur,
+            stock_quantity: product.stock_quantity,
+            is_active: product.is_active,
+          }];
         reset({
           name_en: product.name_en,
           name_yo: product.name_yo,
@@ -54,6 +87,7 @@ const AddEditProductModal: React.FC<AddEditProductModalProps> = ({ isOpen, onClo
           stock_quantity: product.stock_quantity,
           is_active: product.is_active,
         });
+        setVariants(existingVariants);
         setImagePreviews(product.image_urls || []);
       } else {
         reset({
@@ -66,6 +100,14 @@ const AddEditProductModal: React.FC<AddEditProductModalProps> = ({ isOpen, onClo
           stock_quantity: undefined,
           is_active: true,
         });
+        setVariants([
+          {
+            weight_ml: 500,
+            price: 0,
+            stock_quantity: 0,
+            is_active: true,
+          },
+        ]);
         setImagePreviews([]);
       }
       setImageFiles([]);
@@ -106,12 +148,32 @@ const AddEditProductModal: React.FC<AddEditProductModalProps> = ({ isOpen, onClo
     setError('');
     try {
       let savedProductId: string;
+      const normalizedVariants = variants
+        .map((variant) => ({
+          ...variant,
+          weight_ml: Number(variant.weight_ml),
+          price: Number(variant.price),
+          price_usd: variant.price_usd ? Number(variant.price_usd) : undefined,
+          price_gbp: variant.price_gbp ? Number(variant.price_gbp) : undefined,
+          price_eur: variant.price_eur ? Number(variant.price_eur) : undefined,
+          stock_quantity: Number(variant.stock_quantity),
+        }))
+        .filter((variant) => Number.isFinite(variant.weight_ml) && variant.weight_ml > 0 && Number.isFinite(variant.price) && variant.price > 0);
+      if (normalizedVariants.length === 0) {
+        setError('Add at least one valid variant (weight and NGN price are required).');
+        setSubmitting(false);
+        return;
+      }
+      const payload = {
+        ...data,
+        variants: normalizedVariants,
+      };
 
       if (isEditMode) {
-        const response = await adminApi.updateProduct(product!.id, data);
+        const response = await adminApi.updateProduct(product!.id, payload);
         savedProductId = response.data.id || product!.id;
       } else {
-        const response = await adminApi.createProduct(data);
+        const response = await adminApi.createProduct(payload);
         savedProductId = response.data.id;
       }
 
@@ -234,6 +296,67 @@ const AddEditProductModal: React.FC<AddEditProductModalProps> = ({ isOpen, onClo
             value={watch('category_id')}
             {...register('category_id', { required: 'Category is required' })}
           />
+        </div>
+
+        <div className="space-y-3 border border-border rounded-lg p-3">
+          <div className="flex items-center justify-between">
+            <label className="block text-xs font-semibold text-brand-dark uppercase tracking-label">Variants (Weight + Price)</label>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setVariants((prev) => [...prev, { weight_ml: 500, price: 0, stock_quantity: 0, is_active: true }])}
+            >
+              Add Variant
+            </Button>
+          </div>
+          {variants.map((variant, index) => (
+            <div key={variant.id || index} className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end border border-border rounded-lg p-3">
+              <Input
+                label="Weight (ml)"
+                type="number"
+                value={variant.weight_ml}
+                onChange={(e) => setVariants((prev) => prev.map((entry, i) => i === index ? { ...entry, weight_ml: Number(e.target.value) } : entry))}
+              />
+              <Input
+                label="NGN Price"
+                type="number"
+                value={variant.price}
+                onChange={(e) => setVariants((prev) => prev.map((entry, i) => i === index ? { ...entry, price: Number(e.target.value) } : entry))}
+              />
+              <Input
+                label="USD"
+                type="number"
+                value={variant.price_usd ?? ''}
+                onChange={(e) => setVariants((prev) => prev.map((entry, i) => i === index ? { ...entry, price_usd: e.target.value ? Number(e.target.value) : undefined } : entry))}
+              />
+              <Input
+                label="GBP"
+                type="number"
+                value={variant.price_gbp ?? ''}
+                onChange={(e) => setVariants((prev) => prev.map((entry, i) => i === index ? { ...entry, price_gbp: e.target.value ? Number(e.target.value) : undefined } : entry))}
+              />
+              <Input
+                label="EUR"
+                type="number"
+                value={variant.price_eur ?? ''}
+                onChange={(e) => setVariants((prev) => prev.map((entry, i) => i === index ? { ...entry, price_eur: e.target.value ? Number(e.target.value) : undefined } : entry))}
+              />
+              <Input
+                label="Stock"
+                type="number"
+                value={variant.stock_quantity}
+                onChange={(e) => setVariants((prev) => prev.map((entry, i) => i === index ? { ...entry, stock_quantity: Number(e.target.value) } : entry))}
+              />
+              <Button
+                type="button"
+                variant="secondary"
+                className="md:col-span-3"
+                onClick={() => setVariants((prev) => prev.length > 1 ? prev.filter((_, i) => i !== index) : prev)}
+              >
+                Remove
+              </Button>
+            </div>
+          ))}
         </div>
 
         <div className="flex items-center gap-2">

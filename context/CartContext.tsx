@@ -1,14 +1,14 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { CartItem, Product, Currency } from '@/types';
-import { getProductPrice } from '@/utils/helpers';
+import { CartItem, Product, Currency, ProductVariant } from '@/types';
+import { getProductPrice, getVariantPrice } from '@/utils/helpers';
 
 interface CartContextType {
   cart: CartItem[];
-  addToCart: (product: Product, quantity: number) => void;
-  removeFromCart: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  addToCart: (product: Product, quantity: number, variant?: ProductVariant) => void;
+  removeFromCart: (productId: string, variantId?: string) => void;
+  updateQuantity: (productId: string, quantity: number, variantId?: string) => void;
   clearCart: () => void;
   getCartTotal: (currency: Currency) => number;
   getCartItemsCount: () => number;
@@ -29,34 +29,49 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.setItem('cart', JSON.stringify(cart));
   }, [cart]);
 
-  const addToCart = (product: Product, quantity: number) => {
+  const addToCart = (product: Product, quantity: number, variant?: ProductVariant) => {
     setCart((prevCart) => {
-      const existingItem = prevCart.find((item) => item.product.id === product.id);
+      const existingItem = prevCart.find((item) => item.product.id === product.id && item.variantId === variant?.id);
+      const availableStock = variant?.stock_quantity ?? product.stock_quantity;
+      if (availableStock <= 0) {
+        return prevCart;
+      }
       if (existingItem) {
-        const newQuantity = Math.min(existingItem.quantity + quantity, product.stock_quantity);
+        const newQuantity = Math.min(existingItem.quantity + quantity, availableStock);
         return prevCart.map((item) =>
-          item.product.id === product.id
+          item.product.id === product.id && item.variantId === variant?.id
             ? { ...item, quantity: newQuantity }
             : item
         );
       }
-      return [...prevCart, { product, quantity: Math.min(quantity, product.stock_quantity) }];
+      return [...prevCart, {
+        product,
+        variantId: variant?.id,
+        variantWeightMl: variant?.weight_ml,
+        quantity: Math.min(quantity, availableStock),
+      }];
     });
   };
 
-  const removeFromCart = (productId: string) => {
-    setCart((prevCart) => prevCart.filter((item) => item.product.id !== productId));
+  const removeFromCart = (productId: string, variantId?: string) => {
+    setCart((prevCart) => prevCart.filter((item) => !(item.product.id === productId && item.variantId === variantId)));
   };
 
-  const updateQuantity = (productId: string, quantity: number) => {
+  const updateQuantity = (productId: string, quantity: number, variantId?: string) => {
     if (quantity <= 0) {
-      removeFromCart(productId);
+      removeFromCart(productId, variantId);
       return;
     }
     setCart((prevCart) =>
       prevCart.map((item) =>
-        item.product.id === productId
-          ? { ...item, quantity: Math.min(quantity, item.product.stock_quantity) }
+        item.product.id === productId && item.variantId === variantId
+          ? {
+            ...item,
+            quantity: Math.min(
+              quantity,
+              item.product.variants?.find((variant) => variant.id === item.variantId)?.stock_quantity ?? item.product.stock_quantity
+            ),
+          }
           : item
       )
     );
@@ -68,7 +83,8 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const getCartTotal = (currency: Currency) => {
     return cart.reduce((total, item) => {
-      const price = getProductPrice(item.product, currency);
+      const variant = item.product.variants?.find((entry) => entry.id === item.variantId);
+      const price = variant ? getVariantPrice(variant, currency) : getProductPrice(item.product, currency);
       return total + (price || 0) * item.quantity;
     }, 0);
   };

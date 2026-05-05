@@ -7,7 +7,7 @@ import { Product } from '@/types';
 import { useLanguage } from '@/context/LanguageContext';
 import { useCurrency } from '@/context/CurrencyContext';
 import { useTranslation } from 'react-i18next';
-import { getProductName, getProductPrice, formatCurrency } from '@/utils/helpers';
+import { getProductName, getProductPrice, formatCurrency, getActiveVariants, getCheapestVariant, getVariantPrice } from '@/utils/helpers';
 
 interface ProductCardProps {
   product: Product;
@@ -23,9 +23,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const { currency } = useCurrency();
   const { t } = useTranslation();
   const productName = getProductName(product, language);
-  const price = getProductPrice(product, currency);
-
-  if (price === null) return null;
+  const activeVariants = getActiveVariants(product);
+  const cheapestVariant = getCheapestVariant(product, currency);
+  const price = cheapestVariant ? getVariantPrice(cheapestVariant, currency) : getProductPrice(product, currency);
+  const hasWeight = activeVariants.length > 0 || typeof product.weight_kg === 'number';
+  const sizeSummary = activeVariants.slice(0, 3).map((variant) => `${variant.weight_ml}ml`).join(', ');
 
   return (
     <Link
@@ -66,13 +68,22 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           <h3 className="text-xs sm:text-sm font-semibold text-brand-dark uppercase tracking-label mb-0.5 sm:mb-1 line-clamp-2 leading-snug">
             {productName}
           </h3>
+          {hasWeight && (
+            <p className="text-xs text-gray-500 mb-0.5">
+              {activeVariants.length > 0
+                ? `${sizeSummary}${activeVariants.length > 3 ? ` +${activeVariants.length - 3} more` : ''}`
+                : `${product.weight_kg}ml`}
+            </p>
+          )}
           {product.stock_quantity > 0 && (
             <span className="text-xs text-success font-medium">{t('in_stock')}</span>
           )}
         </div>
         <div className="flex flex-col items-end shrink-0">
           <span className="text-sm sm:text-lg font-bold text-brand-dark tabular-nums">
-            {formatCurrency(price, currency)}
+            {price !== null
+              ? (activeVariants.length > 0 ? `From ${formatCurrency(price, currency)}` : formatCurrency(price, currency))
+              : t('not_available_in_currency')}
           </span>
           <span className="text-brand-light group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200 text-sm sm:text-lg leading-none" aria-hidden>
             &#8599;
