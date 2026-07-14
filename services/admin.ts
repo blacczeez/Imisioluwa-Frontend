@@ -47,4 +47,13 @@ export const adminApi = {
   getNigeriaShippingRates: () => api.get('/admin/shipping-nigeria-rates'),
   upsertNigeriaShippingRate: (data: any) => api.post('/admin/shipping-nigeria-rates', data),
   deleteNigeriaShippingRate: (id: string) => api.delete(`/admin/shipping-nigeria-rates/${id}`),
+
+  // Packages
+  createPackage: (data: any) => api.post('/packages', data),
+  updatePackage: (id: string, data: any) => api.put(`/packages/${id}`, data),
+  deletePackage: (id: string) => api.delete(`/packages/${id}`),
+  uploadPackageImage: (id: string, file: FormData) =>
+    api.post(`/packages/${id}/image`, file, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
 };

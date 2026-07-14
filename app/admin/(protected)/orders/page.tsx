@@ -185,13 +185,19 @@ export default function AdminOrdersPage() {
                           <span className="text-xs uppercase tracking-label text-gray-400 block mb-1">Address</span>
                           <span className="text-brand-dark">{order.delivery_address}</span>
                         </div>
-                        {order.items && order.items.length > 0 && (
+                        {(order.items?.length > 0 || order.package_items?.length > 0) && (
                           <div className="col-span-2 md:col-span-3">
                             <span className="text-xs uppercase tracking-label text-gray-400 block mb-2">Items</span>
                             <div className="space-y-1">
-                              {order.items.map((item, idx) => (
-                                <div key={idx} className="flex justify-between text-brand-dark">
+                              {order.items?.map((item, idx) => (
+                                <div key={`product-${idx}`} className="flex justify-between text-brand-dark">
                                   <span>{item.product?.name_en || 'Product'} x{item.quantity}</span>
+                                  <span>{formatCurrency(item.subtotal)}</span>
+                                </div>
+                              ))}
+                              {order.package_items?.map((item, idx) => (
+                                <div key={`package-${idx}`} className="flex justify-between text-brand-dark">
+                                  <span>{item.package_name} (Package) x{item.quantity}</span>
                                   <span>{formatCurrency(item.subtotal)}</span>
                                 </div>
                               ))}
@@ -269,13 +275,19 @@ export default function AdminOrdersPage() {
                   <span className="text-xs uppercase tracking-label text-gray-400">Address: </span>
                   <span className="text-brand-dark">{order.delivery_address}</span>
                 </div>
-                {order.items && order.items.length > 0 && (
+                {(order.items?.length > 0 || order.package_items?.length > 0) && (
                   <div>
                     <span className="text-xs uppercase tracking-label text-gray-400 block mb-1">Items:</span>
-                    {order.items.map((item: any, idx: number) => (
-                      <div key={idx} className="flex justify-between text-brand-dark">
+                    {order.items?.map((item: any, idx: number) => (
+                      <div key={`product-${idx}`} className="flex justify-between text-brand-dark">
                         <span>{item.product_name || item.product?.name_en} x{item.quantity}</span>
                         <span>{formatCurrency(item.price * item.quantity)}</span>
+                      </div>
+                    ))}
+                    {order.package_items?.map((item: any, idx: number) => (
+                      <div key={`package-${idx}`} className="flex justify-between text-brand-dark">
+                        <span>{item.package_name} (Package) x{item.quantity}</span>
+                        <span>{formatCurrency(item.subtotal)}</span>
                       </div>
                     ))}
                   </div>

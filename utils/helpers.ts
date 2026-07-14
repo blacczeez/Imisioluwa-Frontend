@@ -70,3 +70,23 @@ export const getCategoryName = (category: { name_en: string; name_yo: string }, 
   if (language === 'yo') return category.name_yo;
   return category.name_en;
 };
+
+export const getPackageName = (pkg: { name_en: string; name_yo: string }, language: string): string => {
+  if (language === 'yo') return pkg.name_yo;
+  return pkg.name_en;
+};
+
+export const getPackageDescription = (
+  pkg: { description_en: string; description_yo: string },
+  language: string
+): string => {
+  if (language === 'yo') return pkg.description_yo;
+  return pkg.description_en;
+};
+
+export const getPackageProblem = (
+  pkg: { problem_statement_en: string },
+  language: string
+): string => {
+  return pkg.problem_statement_en;
+};

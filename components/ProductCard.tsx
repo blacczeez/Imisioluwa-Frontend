@@ -28,6 +28,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const price = cheapestVariant ? getVariantPrice(cheapestVariant, currency) : getProductPrice(product, currency);
   const hasWeight = activeVariants.length > 0 || typeof product.weight_kg === 'number';
   const sizeSummary = activeVariants.slice(0, 3).map((variant) => `${variant.weight_ml}ml`).join(', ');
+  const totalVariantStock = activeVariants.reduce((sum, variant) => sum + variant.stock_quantity, 0);
+  const isOutOfStock = activeVariants.length > 0 ? totalVariantStock <= 0 : product.stock_quantity <= 0;
+  const isLowStock = activeVariants.length > 0 ? totalVariantStock > 0 && totalVariantStock <= 5 : product.stock_quantity > 0 && product.stock_quantity <= 5;
 
   return (
     <Link
@@ -50,12 +53,12 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             </svg>
           </div>
         )}
-        {product.stock_quantity === 0 && (
+        {isOutOfStock && (
           <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
             <span className="text-white font-medium text-sm uppercase tracking-label">{t('out_of_stock')}</span>
           </div>
         )}
-        {product.stock_quantity > 0 && product.stock_quantity <= 5 && (
+        {isLowStock && (
           <div className="absolute top-3 right-3">
             <span className="bg-white text-brand-dark text-xs font-medium px-2.5 py-1 rounded-full border border-border">
               Few left
@@ -75,7 +78,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                 : `${product.weight_kg}ml`}
             </p>
           )}
-          {product.stock_quantity > 0 && (
+          {!isOutOfStock && (
             <span className="text-xs text-success font-medium">{t('in_stock')}</span>
           )}
         </div>

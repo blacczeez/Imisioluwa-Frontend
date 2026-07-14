@@ -88,6 +88,12 @@ export default function AdminProductsPage() {
   };
 
   const totalPages = Math.max(1, Math.ceil(totalProducts / PRODUCTS_PER_PAGE));
+  const getVariantStock = (product: Product) => {
+    if (!product.variants || product.variants.length === 0) {
+      return product.stock_quantity;
+    }
+    return product.variants.reduce((sum, variant) => sum + variant.stock_quantity, 0);
+  };
 
   useEffect(() => {
     if (currentPage > totalPages) {
@@ -117,7 +123,7 @@ export default function AdminProductsPage() {
             <tr>
               <TableHeader>Product</TableHeader>
               <TableHeader>Price</TableHeader>
-              <TableHeader>Stock</TableHeader>
+              <TableHeader>Variant Stock</TableHeader>
               <TableHeader>Status</TableHeader>
               <TableHeader>Actions</TableHeader>
             </tr>
@@ -125,6 +131,10 @@ export default function AdminProductsPage() {
           <TableBody>
             {products.map((product) => (
               <tr key={product.id}>
+                {(() => {
+                  const stock = getVariantStock(product);
+                  return (
+                    <>
                 <TableCell>
                   <div className="flex items-center">
                     <div className="h-12 w-12 flex-shrink-0 bg-brand-50 rounded-lg overflow-hidden">
@@ -152,14 +162,14 @@ export default function AdminProductsPage() {
                 <TableCell>
                   <span
                     className={`font-medium text-sm ${
-                      product.stock_quantity === 0
+                      stock === 0
                         ? 'text-danger'
-                        : product.stock_quantity <= 10
+                        : stock <= 10
                         ? 'text-warning'
                         : 'text-success'
                     }`}
                   >
-                    {product.stock_quantity}
+                    {stock}
                   </span>
                 </TableCell>
                 <TableCell>
@@ -183,6 +193,9 @@ export default function AdminProductsPage() {
                     Delete
                   </button>
                 </TableCell>
+                    </>
+                  );
+                })()}
               </tr>
             ))}
           </TableBody>
@@ -193,6 +206,10 @@ export default function AdminProductsPage() {
       <div className="md:hidden space-y-3">
         {products.map((product) => (
           <div key={product.id} className="bg-white rounded-xl border border-border p-4">
+            {(() => {
+              const stock = getVariantStock(product);
+              return (
+                <>
             <div className="flex items-start gap-3">
               <div className="h-14 w-14 flex-shrink-0 bg-brand-50 rounded-lg overflow-hidden">
                 {product.image_urls[0] ? (
@@ -219,14 +236,14 @@ export default function AdminProductsPage() {
               <div className="flex items-center gap-3">
                 <span
                   className={`font-medium text-sm ${
-                    product.stock_quantity === 0
+                    stock === 0
                       ? 'text-danger'
-                      : product.stock_quantity <= 10
+                      : stock <= 10
                       ? 'text-warning'
                       : 'text-success'
                   }`}
                 >
-                  Stock: {product.stock_quantity}
+                  Variant Stock: {stock}
                 </span>
                 <button onClick={() => toggleActive(product)}>
                   <Badge color={product.is_active ? 'green' : 'gray'}>
@@ -249,6 +266,9 @@ export default function AdminProductsPage() {
                 </button>
               </div>
             </div>
+                </>
+              );
+            })()}
           </div>
         ))}
       </div>

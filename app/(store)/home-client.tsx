@@ -3,9 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
-import { Product, Category } from '@/types';
+import { Product, Category, Package } from '@/types';
 import ProductCard from '@/components/ProductCard';
+import PackageCard from '@/components/PackageCard';
 import { productService } from '@/services/products';
+import { packageService } from '@/services/packages';
 import { useLanguage } from '@/context/LanguageContext';
 import { useCurrency } from '@/context/CurrencyContext';
 import { getCategoryName } from '@/utils/helpers';
@@ -23,9 +25,14 @@ const HomeClient: React.FC<HomeClientProps> = ({ initialProducts, initialCategor
   const { currency } = useCurrency();
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [categories, setCategories] = useState<Category[]>(initialCategories);
+  const [promotedPackages, setPromotedPackages] = useState<Package[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    packageService.getAll({ promoted: true }).then(setPromotedPackages).catch(console.error);
+  }, []);
 
   // Re-fetch if initial data was empty (SSR failed)
   useEffect(() => {
@@ -72,6 +79,21 @@ const HomeClient: React.FC<HomeClientProps> = ({ initialProducts, initialCategor
       <h1 className="font-serif text-2xl sm:text-3xl text-brand-dark mb-3 sm:mb-4">
         {t('shop_our_collection', 'Authentic African Traditional & Spiritual Products')}
       </h1>
+
+      {promotedPackages.length > 0 && (
+        <section className="mb-8 sm:mb-10">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <h2 className="font-serif text-xl sm:text-2xl text-brand-dark">
+              {t('featured_packages', 'Featured Packages')}
+            </h2>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
+            {promotedPackages.map((pkg) => (
+              <PackageCard key={pkg.id} pkg={pkg} />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Search & Category (sticky) */}
       <div className="sticky top-0 z-20 bg-cream py-2 mb-4 sm:mb-6">

@@ -9,7 +9,7 @@ import { useCurrency } from '@/context/CurrencyContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { orderService } from '@/services/orders';
 import { paymentService } from '@/services/payments';
-import { formatCurrency, getProductName, getProductPrice, getVariantPrice } from '@/utils/helpers';
+import { formatCurrency, getProductName, getProductPrice, getVariantPrice, getPackageName } from '@/utils/helpers';
 import { Spinner } from '@/components/ui';
 import { useToast } from '@/context/ToastContext';
 import { NIGERIA_STATES } from '@/lib/nigeria-states';
@@ -42,7 +42,7 @@ export default function CheckoutClient() {
   const { language } = useLanguage();
   const { currency, country } = useCurrency();
   const router = useRouter();
-  const { cart, getCartTotal, clearCart } = useCart();
+  const { cart, getCartTotal, clearCart, getCartLineKey } = useCart();
   /** Prevents empty-cart → home redirect after COD clears cart but before client navigation finishes. */
   const orderPlacedLeavingCheckout = useRef(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -92,7 +92,15 @@ export default function CheckoutClient() {
 
   const codAvailable = paymentMethods.cod && currency === 'NGN';
 
+  const hasPackages = cart.some((item) => item.type === 'package');
+  const packagesCurrencyBlocked = hasPackages && currency !== 'NGN';
+
   const onSubmit = async (data: CheckoutFormData) => {
+    if (packagesCurrencyBlocked) {
+      showToast(t('packages_ngn_only', 'Packages are only available in Naira (NGN)'));
+      return;
+    }
+
     try {
       setIsSubmitting(true);
 
@@ -102,16 +110,26 @@ export default function CheckoutClient() {
         country,
         shipping_state: country === 'NG' ? data.shipping_state : undefined,
         shipping_lga: country === 'NG' ? data.shipping_lga : undefined,
-        items: cart.map((item) => ({
-          product_id: item.product.id,
-          ...(item.variantId ? { variant_id: item.variantId } : {}),
-          quantity: item.quantity,
-          unit_price: (
-            item.product.variants?.find((variant) => variant.id === item.variantId)
-              ? getVariantPrice(item.product.variants.find((variant) => variant.id === item.variantId)!, currency)
-              : getProductPrice(item.product, currency)
-          ) || 0,
-        })),
+        items: cart.map((item) => {
+          if (item.type === 'package') {
+            return {
+              package_id: item.package.id,
+              quantity: item.quantity,
+              unit_price: item.package.price,
+            };
+          }
+
+          return {
+            product_id: item.product.id,
+            ...(item.variantId ? { variant_id: item.variantId } : {}),
+            quantity: item.quantity,
+            unit_price: (
+              item.product.variants?.find((variant) => variant.id === item.variantId)
+                ? getVariantPrice(item.product.variants.find((variant) => variant.id === item.variantId)!, currency)
+                : getProductPrice(item.product, currency)
+            ) || 0,
+          };
+        }),
       };
 
       const order = await orderService.create(orderData);
@@ -262,7 +280,7 @@ export default function CheckoutClient() {
 
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || packagesCurrencyBlocked}
               className="w-full mt-6 sm:mt-8 py-3 sm:py-4 bg-brand hover:bg-brand-light disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg font-semibold text-sm uppercase tracking-label transition-colors flex items-center justify-center gap-2"
             >
               {isSubmitting ? (<><Spinner size="sm" className="text-white" />{t('loading')}</>) : t('place_order')}
@@ -276,10 +294,25 @@ export default function CheckoutClient() {
 
             <div className="space-y-3 mb-4">
               {cart.map((item) => {
+                if (item.type === 'package') {
+                  const price = currency === 'NGN' ? item.package.price : 0;
+                  return (
+                    <div key={getCartLineKey(item)} className="flex justify-between text-sm gap-4">
+                      <span className="text-gray-500 flex-1">
+                        {getPackageName(item.package, language)}
+                        {' '}<span className="text-brand-300">&times; {item.quantity}</span>
+                      </span>
+                      <span className="font-medium text-brand-dark whitespace-nowrap">
+                        {formatCurrency(price * item.quantity, currency)}
+                      </span>
+                    </div>
+                  );
+                }
+
                 const variant = item.product.variants?.find((entry) => entry.id === item.variantId);
                 const price = (variant ? getVariantPrice(variant, currency) : getProductPrice(item.product, currency)) || 0;
                 return (
-                  <div key={`${item.product.id}-${item.variantId || 'base'}`} className="flex justify-between text-sm gap-4">
+                  <div key={getCartLineKey(item)} className="flex justify-between text-sm gap-4">
                     <span className="text-gray-500 flex-1">
                       {getProductName(item.product, language)}
                       {item.variantWeightMl ? ` (${item.variantWeightMl}ml)` : ''}
@@ -292,6 +325,12 @@ export default function CheckoutClient() {
                 );
               })}
             </div>
+
+            {packagesCurrencyBlocked && (
+              <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-700">
+                {t('packages_ngn_only', 'Packages are only available in Naira (NGN). Switch currency to continue.')}
+              </div>
+            )}
 
             <div className="h-px bg-border my-4"></div>
 

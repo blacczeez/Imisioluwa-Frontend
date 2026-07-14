@@ -12,11 +12,19 @@ interface CreateOrderData {
   country?: string;
   shipping_state?: string;
   shipping_lga?: string;
-  items: {
-    product_id: string;
-    quantity: number;
-    unit_price: number;
-  }[];
+  items: Array<
+    | {
+        product_id: string;
+        variant_id?: string;
+        quantity: number;
+        unit_price: number;
+      }
+    | {
+        package_id: string;
+        quantity: number;
+        unit_price: number;
+      }
+  >;
 }
 
 export const orderService = {

@@ -78,13 +78,7 @@ const AddEditProductModal: React.FC<AddEditProductModalProps> = ({ isOpen, onClo
           name_yo: product.name_yo,
           description_en: product.description_en,
           description_yo: product.description_yo,
-          price: product.price,
-          price_usd: product.price_usd || undefined,
-          price_gbp: product.price_gbp || undefined,
-          price_eur: product.price_eur || undefined,
-          weight_kg: product.weight_kg || undefined,
           category_id: product.category_id,
-          stock_quantity: product.stock_quantity,
           is_active: product.is_active,
         });
         setVariants(existingVariants);
@@ -95,9 +89,7 @@ const AddEditProductModal: React.FC<AddEditProductModalProps> = ({ isOpen, onClo
           name_yo: '',
           description_en: '',
           description_yo: '',
-          price: undefined,
           category_id: '',
-          stock_quantity: undefined,
           is_active: true,
         });
         setVariants([
@@ -239,64 +231,14 @@ const AddEditProductModal: React.FC<AddEditProductModalProps> = ({ isOpen, onClo
           {...register('description_yo', { required: 'Yoruba description is required' })}
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Input
-            label="Price (NGN) *"
-            type="number"
-            step="0.01"
-            error={errors.price?.message}
-            {...register('price', {
-              required: 'Naira price is required',
-              valueAsNumber: true,
-              min: { value: 0.01, message: 'Price must be positive' },
-            })}
-          />
-          <Input
-            label="Price (USD)"
-            type="number"
-            step="0.01"
-            {...register('price_usd', { valueAsNumber: true })}
-          />
-          <Input
-            label="Price (GBP)"
-            type="number"
-            step="0.01"
-            {...register('price_gbp', { valueAsNumber: true })}
-          />
-          <Input
-            label="Price (EUR)"
-            type="number"
-            step="0.01"
-            {...register('price_eur', { valueAsNumber: true })}
-          />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Input
-            label="Stock Quantity *"
-            type="number"
-            error={errors.stock_quantity?.message}
-            {...register('stock_quantity', {
-              required: 'Stock is required',
-              valueAsNumber: true,
-              min: { value: 0, message: 'Cannot be negative' },
-            })}
-          />
-          <Input
-            label="Weight (kg)"
-            type="number"
-            step="0.1"
-            {...register('weight_kg', { valueAsNumber: true })}
-          />
-          <Select
-            label="Category *"
-            placeholder={loadingCategories ? 'Loading...' : 'Select category...'}
-            error={errors.category_id?.message}
-            options={categories.map((c) => ({ value: c.id, label: c.name_en }))}
-            value={watch('category_id')}
-            {...register('category_id', { required: 'Category is required' })}
-          />
-        </div>
+        <Select
+          label="Category *"
+          placeholder={loadingCategories ? 'Loading...' : 'Select category...'}
+          error={errors.category_id?.message}
+          options={categories.map((c) => ({ value: c.id, label: c.name_en }))}
+          value={watch('category_id')}
+          {...register('category_id', { required: 'Category is required' })}
+        />
 
         <div className="space-y-3 border border-border rounded-lg p-3">
           <div className="flex items-center justify-between">

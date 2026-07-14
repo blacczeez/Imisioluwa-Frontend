@@ -11,7 +11,7 @@ import { formatCurrency } from '@/utils/helpers';
 export default function CartClient() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { cart, getCartTotal } = useCart();
+  const { cart, getCartTotal, getCartLineKey } = useCart();
   const { currency } = useCurrency();
 
   if (cart.length === 0) {
@@ -41,7 +41,7 @@ export default function CartClient() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-4">
           {cart.map((item) => (
-            <CartItem key={item.product.id} item={item} />
+            <CartItem key={getCartLineKey(item)} item={item} />
           ))}
         </div>
 
