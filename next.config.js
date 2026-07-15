@@ -3,6 +3,7 @@ const nextConfig = {
   experimental: {
     // Registers instrumentation.ts (events + payment-expiry job) on Node server start
     instrumentationHook: true,
+    serverComponentsExternalPackages: ['@prisma/client', 'bcrypt', 'bcryptjs'],
   },
   images: {
     remotePatterns: [

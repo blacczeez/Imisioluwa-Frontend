@@ -79,8 +79,14 @@ export default function CheckoutClient() {
     setValue('shipping_lga', '');
   }, [selectedState, setValue]);
 
+  // Never call router during render — breaks `next build` SSG (location is not defined).
+  useEffect(() => {
+    if (cart.length === 0 && !orderPlacedLeavingCheckout.current) {
+      router.push('/');
+    }
+  }, [cart.length, router]);
+
   if (cart.length === 0 && !orderPlacedLeavingCheckout.current) {
-    router.push('/');
     return null;
   }
 

@@ -18,6 +18,11 @@ export default function OrderConfirmationContent() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!searchParams) {
+      router.push('/');
+      return;
+    }
+
     const orderId = searchParams.get('order');
     const reference = searchParams.get('reference') || searchParams.get('trxref');
     const sessionId = searchParams.get('session_id');

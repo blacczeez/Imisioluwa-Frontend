@@ -4,6 +4,9 @@ import { Product, Category } from '@/types';
 import { SITE_URL } from '@/lib/constants';
 import HomeClient from './home-client';
 
+/** Home fetches live catalog; avoid static prerender against unreachable API at build time. */
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Imisioluwa — Shop Authentic African Traditional & Spiritual Products Online',
   description: 'Shop authentic African traditional soaps, spiritual oils, herbal remedies, and food products. Sourced from trusted makers with free delivery in Nigeria and worldwide shipping.',

@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 import { json } from '@/lib/server/http';
 
 export async function GET() {

@@ -45,8 +45,9 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   };
 
   const isActive = (path: string) => {
-    if (path === '/admin') return pathname === '/admin';
-    return pathname.startsWith(path);
+    const current = pathname ?? '';
+    if (path === '/admin') return current === '/admin';
+    return current.startsWith(path);
   };
 
   return (

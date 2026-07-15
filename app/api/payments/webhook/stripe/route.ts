@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 import { NextRequest } from 'next/server';
 import { json } from '@/lib/server/http';
 import { stripeWebhook } from '@/lib/server/services/paymentControllerService';

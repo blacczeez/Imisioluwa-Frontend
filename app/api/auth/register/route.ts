@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 import { z } from 'zod';
 import { NextRequest } from 'next/server';
 import { json, validationError, apiError } from '@/lib/server/http';

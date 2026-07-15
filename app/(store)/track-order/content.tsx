@@ -11,8 +11,8 @@ import { Spinner } from '@/components/ui';
 const TrackOrderContent: React.FC = () => {
   const { t } = useTranslation();
   const searchParams = useSearchParams();
-  const [orderNumber, setOrderNumber] = useState(searchParams.get('orderNumber') || '');
-  const [phone, setPhone] = useState(searchParams.get('phone') || '');
+  const [orderNumber, setOrderNumber] = useState(searchParams?.get('orderNumber') || '');
+  const [phone, setPhone] = useState(searchParams?.get('phone') || '');
   const [order, setOrder] = useState<Order | null>(null);
   const [tracking, setTracking] = useState(false);
   const [error, setError] = useState('');
@@ -40,7 +40,7 @@ const TrackOrderContent: React.FC = () => {
   };
 
   useEffect(() => {
-    if (searchParams.get('orderNumber') && searchParams.get('phone')) {
+    if (searchParams?.get('orderNumber') && searchParams?.get('phone')) {
       void handleTrackOrder();
     }
     // Intentionally run only on first render with initial query params.
