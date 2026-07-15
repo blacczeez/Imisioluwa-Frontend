@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Currency } from '@/types';
+import { getClientApiBaseUrl } from '@/lib/api';
 
 interface CurrencyContextType {
   currency: Currency;
@@ -68,8 +69,10 @@ export const CurrencyProvider: React.FC<{ children: ReactNode }> = ({ children }
       return;
     }
 
-    const apiUrl = typeof window !== 'undefined' ? process.env.NEXT_PUBLIC_API_URL || '' : '';
-    const geoUrl = apiUrl ? `${apiUrl.replace(/\/$/, '')}/geo` : 'https://ip-api.com/json/?fields=countryCode';
+    const apiUrl = typeof window !== 'undefined' ? getClientApiBaseUrl() : '';
+    const geoUrl = apiUrl
+      ? `${apiUrl.replace(/\/$/, '')}/geo`
+      : 'https://ip-api.com/json/?fields=countryCode';
 
     fetch(geoUrl)
       .then((res) => (res.ok ? res.json() : Promise.reject(new Error(`${res.status}`))))

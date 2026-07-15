@@ -1,0 +1,57 @@
+import { orderEmitter, ORDER_EVENTS, OrderEventPayload } from '@/lib/server/events/orderEvents';
+import { prisma } from '@/lib/server/prisma';
+import { logger } from '@/lib/server/utils/logger';
+
+export function registerStockListeners() {
+  orderEmitter.on(ORDER_EVENTS.CANCELLED, async (payload: OrderEventPayload) => {
+    try {
+      for (const item of payload.items) {
+        if (!item.productId) continue;
+
+        if (item.variantId) {
+          await prisma.productVariant.update({
+            where: { id: item.variantId },
+            data: { stock_quantity: { increment: item.quantity } },
+          });
+        } else {
+          await prisma.product.update({
+            where: { id: item.productId },
+            data: { stock_quantity: { increment: item.quantity } },
+          });
+        }
+
+        await prisma.inventoryLog.create({
+          data: {
+            product_id: item.productId,
+            change_type: 'ADJUSTMENT',
+            quantity_change: item.quantity,
+            notes: `Stock restored - Order ${payload.orderNumber} cancelled`,
+          },
+        });
+      }
+
+      for (const packageItem of payload.packageItems || []) {
+        for (const entry of packageItem.contents) {
+          const restoreQty = entry.quantity * packageItem.quantity;
+          await prisma.productVariant.update({
+            where: { id: entry.variant_id },
+            data: { stock_quantity: { increment: restoreQty } },
+          });
+
+          await prisma.inventoryLog.create({
+            data: {
+              product_id: entry.product_id,
+              change_type: 'ADJUSTMENT',
+              quantity_change: restoreQty,
+              notes: `Stock restored - Order ${payload.orderNumber} cancelled (${packageItem.packageName})`,
+            },
+          });
+        }
+      }
+
+      logger.info(`Stock restored for cancelled order ${payload.orderNumber}`);
+    } catch (error) {
+      logger.error('Stock listener error (cancelled):', error);
+    }
+  });
+}

@@ -1,0 +1,12 @@
+import { NextRequest } from 'next/server';
+import { json } from '@/lib/server/http';
+import { getPackageBySlug } from '@/lib/server/services/packageService';
+
+export async function GET(
+  _request: NextRequest,
+  context: { params: Promise<{ slug: string }> | { slug: string } }
+) {
+  const params = await Promise.resolve(context.params);
+  const result = await getPackageBySlug(params.slug);
+  return json(result.body, result.status);
+}

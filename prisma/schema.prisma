@@ -1,0 +1,317 @@
+// This is your Prisma schema file
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  password_hash String
+  role          Role     @default(CUSTOMER)
+  name          String
+  phone         String
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  admin_user AdminUser?
+  orders     Order[]
+
+  @@map("users")
+}
+
+model Product {
+  id             String   @id @default(uuid())
+  slug           String   @unique
+  name_en        String
+  name_yo        String
+  description_en String   @db.Text
+  description_yo String   @db.Text
+  price          Float
+  price_usd      Float?
+  price_gbp      Float?
+  price_eur      Float?
+  weight_kg      Float?
+  category_id    String
+  image_urls     String[]
+  stock_quantity Int      @default(0)
+  is_active      Boolean  @default(true)
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  category       Category        @relation(fields: [category_id], references: [id])
+  order_items    OrderItem[]
+  inventory_logs InventoryLog[]
+  variants       ProductVariant[]
+
+  @@map("products")
+}
+
+model ProductVariant {
+  id             String   @id @default(uuid())
+  product_id     String
+  weight_ml      Int
+  price          Float
+  price_usd      Float?
+  price_gbp      Float?
+  price_eur      Float?
+  stock_quantity Int      @default(0)
+  is_active      Boolean  @default(true)
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  product       Product       @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  order_items   OrderItem[]
+  package_items PackageItem[]
+
+  @@unique([product_id, weight_ml])
+  @@map("product_variants")
+}
+
+model Package {
+  id                   String   @id @default(uuid())
+  slug                 String   @unique
+  name_en              String
+  name_yo              String
+  problem_statement_en String   @db.Text
+  description_en       String   @db.Text
+  description_yo       String   @db.Text
+  price                Float
+  image_url            String?
+  is_active            Boolean  @default(true)
+  is_promoted          Boolean  @default(false)
+  created_at           DateTime @default(now())
+  updated_at           DateTime @updatedAt
+
+  items        PackageItem[]
+  order_items  OrderPackageItem[]
+
+  @@map("packages")
+}
+
+model PackageItem {
+  id         String @id @default(uuid())
+  package_id String
+  variant_id String
+  quantity   Int    @default(1)
+
+  package Package        @relation(fields: [package_id], references: [id], onDelete: Cascade)
+  variant ProductVariant @relation(fields: [variant_id], references: [id])
+
+  @@unique([package_id, variant_id])
+  @@map("package_items")
+}
+
+model Category {
+  id         String    @id @default(uuid())
+  name_en    String
+  name_yo    String
+  slug       String    @unique
+  image_url  String?
+  parent_id  String?
+  created_at DateTime  @default(now())
+
+  parent   Category?  @relation("CategoryParent", fields: [parent_id], references: [id])
+  children Category[] @relation("CategoryParent")
+  products Product[]
+
+  @@map("categories")
+}
+
+model Order {
+  id               String        @id @default(uuid())
+  order_number     String        @unique
+  user_id          String?
+  customer_name    String
+  customer_email   String
+  phone            String
+  delivery_address String        @db.Text
+  total_amount     Float
+  status           OrderStatus   @default(PENDING_PAYMENT)
+  payment_status   PaymentStatus @default(PENDING)
+  payment_method   String?
+  payment_reference String?
+  currency         String    @default("NGN")
+  country          String?
+  shipping_state   String?
+  shipping_lga     String?
+  shipping_cost    Float     @default(0)
+  payment_gateway  String?
+  notes            String?       @db.Text
+  created_at       DateTime      @default(now())
+  updated_at       DateTime      @updatedAt
+
+  user           User?              @relation(fields: [user_id], references: [id])
+  items          OrderItem[]
+  package_items  OrderPackageItem[]
+  payments       Payment[]
+  deliveries     Delivery[]
+
+  @@map("orders")
+}
+
+model NigeriaLgaShippingRate {
+  id         String   @id @default(uuid())
+  state      String
+  lga        String
+  price      Float
+  is_active  Boolean  @default(true)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@unique([state, lga])
+  @@map("nigeria_lga_shipping_rates")
+}
+
+model OrderItem {
+  id         String   @id @default(uuid())
+  order_id   String
+  product_id String
+  variant_id String?
+  quantity   Int
+  unit_price Float
+  subtotal   Float
+  created_at DateTime @default(now())
+
+  order   Order           @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  product Product         @relation(fields: [product_id], references: [id])
+  variant ProductVariant? @relation(fields: [variant_id], references: [id])
+
+  @@map("order_items")
+}
+
+model OrderPackageItem {
+  id                String   @id @default(uuid())
+  order_id          String
+  package_id        String?
+  package_name      String
+  quantity          Int
+  unit_price        Float
+  subtotal          Float
+  contents_snapshot Json
+  created_at        DateTime @default(now())
+
+  order   Order    @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  package Package? @relation(fields: [package_id], references: [id], onDelete: SetNull)
+
+  @@map("order_package_items")
+}
+
+model Delivery {
+  id              String         @id @default(uuid())
+  order_id        String
+  delivery_person String?
+  delivery_date   DateTime?
+  status          DeliveryStatus @default(PENDING)
+  tracking_number String?        @unique
+  notes           String?        @db.Text
+  created_at      DateTime       @default(now())
+  updated_at      DateTime       @updatedAt
+
+  order Order @relation(fields: [order_id], references: [id], onDelete: Cascade)
+
+  @@map("deliveries")
+}
+
+model Payment {
+  id               String        @id @default(uuid())
+  order_id         String
+  amount           Float
+  payment_reference String       @unique
+  gateway_response Json?
+  status           PaymentStatus @default(PENDING)
+  created_at       DateTime      @default(now())
+
+  order Order @relation(fields: [order_id], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
+
+model InventoryLog {
+  id             String           @id @default(uuid())
+  product_id     String
+  change_type    InventoryChangeType
+  quantity_change Int
+  notes          String?          @db.Text
+  created_at     DateTime         @default(now())
+
+  product Product @relation(fields: [product_id], references: [id], onDelete: Cascade)
+
+  @@map("inventory_logs")
+}
+
+model AdminUser {
+  id          String   @id @default(uuid())
+  user_id     String   @unique
+  role        AdminRole @default(ADMIN)
+  permissions String[]
+  created_at  DateTime @default(now())
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("admin_users")
+}
+
+model ShippingZone {
+  id                  String   @id @default(uuid())
+  name                String
+  countries           String[]
+  currency            String
+  flat_rate           Float
+  free_shipping_above Float?
+  is_active           Boolean  @default(true)
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
+
+  @@map("shipping_zones")
+}
+
+model Setting {
+  key        String   @id
+  value      String
+  updated_at DateTime @updatedAt
+
+  @@map("settings")
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+enum AdminRole {
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum OrderStatus {
+  PENDING_PAYMENT
+  CONFIRMED
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+}
+
+enum DeliveryStatus {
+  PENDING
+  IN_TRANSIT
+  DELIVERED
+  FAILED
+}
+
+enum InventoryChangeType {
+  SALE
+  RESTOCK
+  ADJUSTMENT
+}

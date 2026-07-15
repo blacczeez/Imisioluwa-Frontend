@@ -11,7 +11,7 @@ export async function getBuildTimeCategorySlugs(): Promise<string[]> {
     return categories.map((c) => c.slug).filter(Boolean);
   } catch {
     console.warn(
-      `[build-categories] Could not reach ${getServerSideApiBaseUrl()}. Pre-render/sitemap category URLs skipped; start the backend or set NEXT_PUBLIC_API_URL for a full static build.`,
+      `[build-categories] Could not reach ${getServerSideApiBaseUrl()}. Pre-render/sitemap category URLs skipped; ensure NEXT_PUBLIC_API_MODE=next (or start Express + NEXT_PUBLIC_API_URL) for a full static build.`,
     );
     return [];
   }

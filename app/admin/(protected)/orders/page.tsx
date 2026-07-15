@@ -7,6 +7,7 @@ import { formatCurrency } from '@/utils/helpers';
 import { formatDate } from '@/utils/admin-helpers';
 import { Spinner, Badge, CustomSelect } from '@/components/ui';
 import { useToast } from '@/context/ToastContext';
+import { getClientApiBaseUrl } from '@/lib/api';
 
 export default function AdminOrdersPage() {
   const { showToast } = useToast();
@@ -22,7 +23,7 @@ export default function AdminOrdersPage() {
   // SSE real-time updates
   useEffect(() => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('adminToken') : null;
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+    const apiUrl = getClientApiBaseUrl();
     const eventSource = new EventSource(`${apiUrl}/admin/orders/stream?token=${token}`);
 
     eventSource.addEventListener('new_order', () => {
@@ -185,7 +186,7 @@ export default function AdminOrdersPage() {
                           <span className="text-xs uppercase tracking-label text-gray-400 block mb-1">Address</span>
                           <span className="text-brand-dark">{order.delivery_address}</span>
                         </div>
-                        {(order.items?.length > 0 || order.package_items?.length > 0) && (
+                        {((order.items?.length ?? 0) > 0 || (order.package_items?.length ?? 0) > 0) && (
                           <div className="col-span-2 md:col-span-3">
                             <span className="text-xs uppercase tracking-label text-gray-400 block mb-2">Items</span>
                             <div className="space-y-1">
@@ -275,7 +276,7 @@ export default function AdminOrdersPage() {
                   <span className="text-xs uppercase tracking-label text-gray-400">Address: </span>
                   <span className="text-brand-dark">{order.delivery_address}</span>
                 </div>
-                {(order.items?.length > 0 || order.package_items?.length > 0) && (
+                {((order.items?.length ?? 0) > 0 || (order.package_items?.length ?? 0) > 0) && (
                   <div>
                     <span className="text-xs uppercase tracking-label text-gray-400 block mb-1">Items:</span>
                     {order.items?.map((item: any, idx: number) => (

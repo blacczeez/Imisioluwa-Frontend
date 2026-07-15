@@ -16,7 +16,7 @@ export async function getBuildTimeProducts(): Promise<Product[]> {
   } catch {
     // Build often runs without the API; ECONNREFUSED throws before res.ok.
     console.warn(
-      `[build-products] Could not reach ${getServerSideApiBaseUrl()}. Pre-render/sitemap product URLs skipped; start the backend or set NEXT_PUBLIC_API_URL for a full static build.`,
+      `[build-products] Could not reach ${getServerSideApiBaseUrl()}. Pre-render/sitemap product URLs skipped; ensure NEXT_PUBLIC_API_MODE=next (or start Express + NEXT_PUBLIC_API_URL) for a full static build.`,
     );
     return [];
   }
